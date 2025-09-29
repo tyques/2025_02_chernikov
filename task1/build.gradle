@@ -1,9 +1,14 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'ru.shift'
 version = '1.0-SNAPSHOT'
+
+application {
+    mainClass = 'ru.shift.Main'
+}
 
 repositories {
     mavenCentral()
@@ -17,4 +22,14 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ru.shift.Main'
+    }
+}
+
+run {
+    standardInput = System.in
 }

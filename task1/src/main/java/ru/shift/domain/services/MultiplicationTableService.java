@@ -3,7 +3,7 @@ package ru.shift.domain.services;
 import ru.shift.domain.entity.MultiplicationTable;
 
 public class MultiplicationTableService {
-    public void printMultiplicationTable(MultiplicationTable multiplicationTable) {
+    public String generateTableAsString(MultiplicationTable multiplicationTable) {
         StringBuilder stringBuilder = new StringBuilder();
 
         writeFirstRow(multiplicationTable, stringBuilder);
@@ -19,7 +19,7 @@ public class MultiplicationTableService {
             }
             writeDividingRow(multiplicationTable, stringBuilder);
         }
-        System.out.println(stringBuilder);
+        return (stringBuilder.toString());
     }
 
     private void writeFirstRow(MultiplicationTable multiplicationTable, StringBuilder stringBuilder) {
