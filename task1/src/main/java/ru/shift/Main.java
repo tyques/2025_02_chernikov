@@ -1,5 +1,6 @@
 package ru.shift;
 
+import ru.shift.domain.entity.Constants;
 import ru.shift.domain.entity.MultiplicationTable;
 import ru.shift.domain.services.MultiplicationTableService;
 
@@ -16,7 +17,7 @@ public class Main {
                 try {
                     tableSize = scanner.nextInt();
 
-                    if (tableSize >= 1 && tableSize <= 32) {
+                    if (tableSize >= Constants.MIN_TABLE_SIZE && tableSize <= Constants.MAX_TABLE_SIZE) {
                         break;
                     } else {
                         System.err.println("Error: The table size must be in the range from 1 to 32. Please try again.");

@@ -7,9 +7,8 @@ public class MultiplicationTable {
 
     public MultiplicationTable(int tableSize) {
         this.tableSize = tableSize;
-        // Логарифм числа по основанию 10 равен количеству цифр минус один
-        this.lengthOfFirstColumn = (int) (Math.log10(tableSize) + 1);
-        this.cellSize = (int) (Math.log10(tableSize * tableSize) + 1);
+        this.lengthOfFirstColumn = calcLengthOfFirstColumn(tableSize);
+        this.cellSize = calcCellSize(tableSize);
 
     }
 
@@ -23,5 +22,14 @@ public class MultiplicationTable {
 
     public int getCellSize() {
         return cellSize;
+    }
+
+    // Логарифм числа по основанию 10 равен количеству цифр минус один
+    private int calcCellSize(int tableSize) {
+        return (int) (Math.log10(tableSize * tableSize) + 1);
+    }
+
+    private int calcLengthOfFirstColumn(int tableSize) {
+        return (int) (Math.log10(tableSize) + 1);
     }
 }

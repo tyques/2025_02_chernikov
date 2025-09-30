@@ -1,5 +1,6 @@
 package ru.shift.domain.services;
 
+import ru.shift.domain.entity.Constants;
 import ru.shift.domain.entity.MultiplicationTable;
 
 public class MultiplicationTableService {
@@ -9,41 +10,41 @@ public class MultiplicationTableService {
         writeFirstRow(multiplicationTable, stringBuilder);
         writeDividingRow(multiplicationTable, stringBuilder);
         for (int row = 1; row <= multiplicationTable.getTableSize(); row++) {
-            stringBuilder.append("\n");
+            stringBuilder.append(Constants.NEW_LINE);
             writeFirstElementInRow(row, multiplicationTable.getLengthOfFirstColumn(), stringBuilder);
 
             for (int column = 1; column <= multiplicationTable.getTableSize(); ++column) {
-                stringBuilder.append("|");
-                stringBuilder.append(" ".repeat(multiplicationTable.getCellSize() - calcDigitsInCell(row, column)));
+                stringBuilder.append(Constants.STICK);
+                stringBuilder.append(Constants.SPACE.repeat(multiplicationTable.getCellSize() - calcDigitsInCell(row, column)));
                 stringBuilder.append(row * column);
             }
             writeDividingRow(multiplicationTable, stringBuilder);
         }
-        return (stringBuilder.toString());
+        return stringBuilder.toString();
     }
 
     private void writeFirstRow(MultiplicationTable multiplicationTable, StringBuilder stringBuilder) {
-        stringBuilder.append(" ".repeat(multiplicationTable.getLengthOfFirstColumn()));
+        stringBuilder.append(Constants.SPACE.repeat(multiplicationTable.getLengthOfFirstColumn()));
         for (int i = 1; i <= multiplicationTable.getTableSize(); i++) {
-            stringBuilder.append("|");
-            stringBuilder.append(" ".repeat(multiplicationTable.getCellSize() - calcDigitsInCell(1, i)));
+            stringBuilder.append(Constants.STICK);
+            stringBuilder.append(Constants.SPACE.repeat(multiplicationTable.getCellSize() - calcDigitsInCell(1, i)));
             stringBuilder.append(i);
         }
     }
 
     private void writeDividingRow(MultiplicationTable multiplicationTable, StringBuilder stringBuilder) {
-        stringBuilder.append('\n');
-        stringBuilder.append("-".repeat(multiplicationTable.getLengthOfFirstColumn()));
+        stringBuilder.append(Constants.NEW_LINE);
+        stringBuilder.append(Constants.MINUS.repeat(multiplicationTable.getLengthOfFirstColumn()));
 
         for (int j = 0; j < multiplicationTable.getTableSize(); j++) {
-            stringBuilder.append('+');
-            stringBuilder.append("-".repeat(multiplicationTable.getCellSize()));
+            stringBuilder.append(Constants.PLUS);
+            stringBuilder.append(Constants.MINUS.repeat(multiplicationTable.getCellSize()));
         }
     }
 
     private void writeFirstElementInRow(int row, int cellSize, StringBuilder stringBuilder) {
         int countOfSpaces = cellSize - calcDigitsInCell(row, 1);
-        stringBuilder.append(" ".repeat(countOfSpaces));
+        stringBuilder.append(Constants.SPACE.repeat(countOfSpaces));
         stringBuilder.append(row);
     }
 
