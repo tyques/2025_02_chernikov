@@ -7,33 +7,35 @@ public class MultiplicationTableService {
     private final int tableSize;
     private final int lengthOfFirstColumn;
     private final int cellSize;
+    private final String dividingRow;
+    private final StringBuilder stringBuilder;
 
     public MultiplicationTableService(MultiplicationTable multiplicationTable) {
         this.tableSize = multiplicationTable.getTableSize();
         this.lengthOfFirstColumn = multiplicationTable.getLengthOfFirstColumn();
         this.cellSize = multiplicationTable.getCellSize();
+        this.dividingRow = createDividingRow();
+        this.stringBuilder = new StringBuilder(calculateInitialCapacity());
     }
 
     public String generateTableAsString() {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        writeFirstRow(stringBuilder);
-        writeDividingRow( stringBuilder);
+        writeFirstRow();
+        stringBuilder.append(dividingRow);
         for (int row = 1; row <= tableSize; row++) {
             stringBuilder.append(Constants.NEW_LINE);
-            writeFirstElementInRow(row, lengthOfFirstColumn, stringBuilder);
+            writeFirstElementInRow(row, lengthOfFirstColumn);
 
             for (int column = 1; column <= tableSize; ++column) {
                 stringBuilder.append(Constants.STICK);
                 stringBuilder.repeat(Constants.SPACE, cellSize - calcDigitsInCell(row, column));
                 stringBuilder.append(row * column);
             }
-            writeDividingRow(stringBuilder);
+            stringBuilder.append(dividingRow);
         }
         return stringBuilder.toString();
     }
 
-    private void writeFirstRow(StringBuilder stringBuilder) {
+    private void writeFirstRow() {
         stringBuilder.repeat(Constants.SPACE, lengthOfFirstColumn);
         for (int i = 1; i <= tableSize; i++) {
             stringBuilder.append(Constants.STICK);
@@ -42,7 +44,8 @@ public class MultiplicationTableService {
         }
     }
 
-    private void writeDividingRow(StringBuilder stringBuilder) {
+    private String createDividingRow() {
+        StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(Constants.NEW_LINE);
         stringBuilder.repeat(Constants.MINUS, lengthOfFirstColumn);
 
@@ -50,12 +53,24 @@ public class MultiplicationTableService {
             stringBuilder.append(Constants.PLUS);
             stringBuilder.repeat(Constants.MINUS, cellSize);
         }
+        return stringBuilder.toString();
     }
 
-    private void writeFirstElementInRow(int row, int cellSize, StringBuilder stringBuilder) {
+    private void writeFirstElementInRow(int row, int cellSize) {
         int countOfSpaces = cellSize - calcDigitsInCell(row, 1);
         stringBuilder.repeat(Constants.SPACE, countOfSpaces);
         stringBuilder.append(row);
+    }
+
+    private int calculateInitialCapacity() {
+        int tableWidth = lengthOfFirstColumn + tableSize * (1 + cellSize);
+
+        int dividingRowLength = 1 + tableWidth;
+
+        int singleLoopBlockLength = 1 + tableWidth + dividingRowLength;
+
+        int initialCapacity = tableWidth + dividingRowLength + tableSize * singleLoopBlockLength;
+        return initialCapacity;
     }
 
     private int calcDigitsInCell(int row, int column) {
