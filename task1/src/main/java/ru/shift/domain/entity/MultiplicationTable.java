@@ -2,7 +2,9 @@ package ru.shift.domain.entity;
 
 public class MultiplicationTable {
     private final int tableSize;
+
     private final int lengthOfFirstColumn;
+
     private final int cellSize;
 
     public MultiplicationTable(int tableSize) {

@@ -5,9 +5,13 @@ import ru.shift.domain.entity.MultiplicationTable;
 
 public class MultiplicationTableService {
     private final int tableSize;
+
     private final int lengthOfFirstColumn;
+
     private final int cellSize;
+
     private final String dividingRow;
+
     private final StringBuilder stringBuilder;
 
     public MultiplicationTableService(MultiplicationTable multiplicationTable) {
