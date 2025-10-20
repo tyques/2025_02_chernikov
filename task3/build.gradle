@@ -1,0 +1,15 @@
+group 'ru.cft.javaLessons.miner'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "ch.qos.logback:logback-classic:1.2.3"
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+}
