@@ -26,18 +26,19 @@ public class GameSession {
         return gameState;
     }
 
-
-/*
-    private void reset() {
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                grid[row][col] = new Cell();
-            }
-        }
-        flagsPlaced = 0;
-        gameState = GameState.BEFORE_START;
-        startTime = 0;
+    public Difficulty getDifficulty() {
+        return difficulty;
     }
 
-     */
+    public Grid getGrid() {
+        return grid;
+    }
+
+    public int getFlagsPlaced() {
+        return flagsPlaced;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
 }
