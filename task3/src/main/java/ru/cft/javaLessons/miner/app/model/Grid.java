@@ -3,13 +3,18 @@ package ru.cft.javaLessons.miner.app.model;
 public class Grid {
     private final int rows;
     private final int cols;
-    private Cell[][] area;
+    private final int countOfMins;
+    private final Cell[][] area;
+    private int flagsPlaced;
 
 
-    public Grid(int rows, int cols, int numMines) {
-        this.rows = rows;
-        this.cols = cols;
+    public Grid(Difficulty difficulty) {
+        this.rows = difficulty.getRows();
+        this.cols = difficulty.getCols();
+        this.countOfMins = difficulty.getCountOfMins();
         this.area = new Cell[rows][cols];
+        this.flagsPlaced = 0;
+        initArea();
     }
 
     public int getRows() {
@@ -22,5 +27,17 @@ public class Grid {
 
     public Cell[][] getArea() {
         return area;
+    }
+
+    public int getCountOfMins() {
+        return countOfMins;
+    }
+
+    private void initArea() {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                area[row][col] = new Cell();
+            }
+        }
     }
 }

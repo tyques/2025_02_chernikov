@@ -9,7 +9,7 @@ public class GameSession {
 
     public GameSession(Difficulty difficulty) {
         this.difficulty = difficulty;
-        this.grid = new Grid(difficulty.getRows(), difficulty.getCols(), difficulty.getCountOfMins());
+        this.grid = new Grid(difficulty);
         this.gameState = GameState.BEFORE_START;
         this.flagsPlaced = 0;
     }
