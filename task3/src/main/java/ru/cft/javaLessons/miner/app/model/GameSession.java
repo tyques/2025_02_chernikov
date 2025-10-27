@@ -5,25 +5,47 @@ public class GameSession {
     private final Grid grid;
     private GameState gameState;
     private int flagsPlaced;
-    private long startTime;
+    private int elapsedTime; // in seconds
+    private boolean timerRunning;
+
 
     public GameSession(Difficulty difficulty) {
         this.difficulty = difficulty;
         this.grid = new Grid(difficulty);
         this.gameState = GameState.BEFORE_START;
         this.flagsPlaced = 0;
+        this.elapsedTime = 0;
+        this.timerRunning = false;
     }
 
-    public void incrementFlagsPlaces(){
+    public void incrementFlagsPlaces() {
         flagsPlaced++;
     }
 
-    public void decrementFlagsPlaced(){
+    public void decrementFlagsPlaced() {
         flagsPlaced--;
+    }
+
+    public void startTimer() {
+        this.timerRunning = true;
+    }
+
+    public void stopTimer() {
+        this.timerRunning = false;
+    }
+
+    public void incrementTime() {
+        if (timerRunning) {
+            this.elapsedTime++;
+        }
     }
 
     public GameState getGameState() {
         return gameState;
+    }
+
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
     }
 
     public Difficulty getDifficulty() {
@@ -38,7 +60,7 @@ public class GameSession {
         return flagsPlaced;
     }
 
-    public long getStartTime() {
-        return startTime;
+    public int getElapsedTime() {
+        return elapsedTime;
     }
 }

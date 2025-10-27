@@ -1,15 +1,108 @@
 package ru.cft.javaLessons.miner.app.service;
 
-import ru.cft.javaLessons.miner.app.model.Difficulty;
+import ru.cft.javaLessons.miner.app.model.Cell;
 import ru.cft.javaLessons.miner.app.model.Grid;
 
-public class GridService {
-    private Difficulty difficulty;
-    private Grid grid;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-    private Grid createGrid(){
-        return new Grid(difficulty);
+public class GridService {
+    public void placeMines(Grid grid, int firstClickX, int firstClickY) {
+        int rows = grid.getRows();
+        int cols = grid.getCols();
+        int minesToPlace = grid.getCountOfMins();
+
+        List<int[]> possibleMineLocations = new ArrayList<>();
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (row != firstClickY || col != firstClickX) {
+                    possibleMineLocations.add(new int[]{row, col});
+                }
+            }
+        }
+
+        Collections.shuffle(possibleMineLocations);
+
+        for (int i = 0; i < minesToPlace; i++) {
+            int[] location = possibleMineLocations.get(i);
+            grid.getArea()[location[0]][location[1]].setMine(true);
+        }
+
+        calculateAdjacentMines(grid);
     }
 
+    private void calculateAdjacentMines(Grid grid) {
+        for (int row = 0; row < grid.getRows(); row++) {
+            for (int col = 0; col < grid.getCols(); col++) {
+                if (!grid.getArea()[row][col].isMine()) {
+                    grid.getArea()[row][col].setAdjacentMines(countMinesAround(grid, row, col));
+                }
+            }
+        }
+    }
+
+    private byte countMinesAround(Grid grid, int row, int col) {
+        byte count = 0;
+        for (int r = row - 1; r <= row + 1; r++) {
+            for (int c = col - 1; c <= col + 1; c++) {
+                if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && grid.getArea()[r][c].isMine()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public void revealCell(Grid grid, int x, int y) {
+        Cell cell = grid.getArea()[y][x];
+        if (cell.isRevealed() || cell.isFlagged()) {
+            return;
+        }
+
+        cell.setRevealed();
+
+        if (cell.isMine()) {
+            return;
+        }
+
+        if (cell.getAdjacentMines() == 0) {
+            for (int r = y - 1; r <= y + 1; r++) {
+                for (int c = x - 1; c <= x + 1; c++) {
+                    if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && !(r == y && c == x)) {
+                        revealCell(grid, c, r);
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean revealNeighbors(Grid grid, int x, int y) {
+        boolean mineRevealed = false;
+        for (int r = y - 1; r <= y + 1; r++) {
+            for (int c = x - 1; c <= x + 1; c++) {
+                if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && !(r == y && c == x)) {
+                    Cell neighbor = grid.getArea()[r][c];
+                    if (!neighbor.isFlagged() && !neighbor.isRevealed()) {
+                        if (neighbor.isMine()) {
+                            mineRevealed = true;
+                        }
+                        revealCell(grid, c, r);
+                    }
+                }
+            }
+        }
+        return mineRevealed;
+    }
+
+    public void revealAllMines(Grid grid) {
+        for (int row = 0; row < grid.getRows(); row++) {
+            for (int col = 0; col < grid.getCols(); col++) {
+                if (grid.getArea()[row][col].isMine()) {
+                    grid.getArea()[row][col].setRevealed();
+                }
+            }
+        }
+    }
 
 }

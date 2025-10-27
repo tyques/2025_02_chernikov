@@ -26,8 +26,8 @@ public class Cell {
         return isRevealed;
     }
 
-    public void setRevealed(boolean revealed) {
-        isRevealed = revealed;
+    public void setRevealed() {
+        isRevealed = true;
     }
 
     public boolean isFlagged() {

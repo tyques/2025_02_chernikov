@@ -1,9 +1,9 @@
 package ru.cft.javaLessons.miner.app.model;
 
 public enum Difficulty {
-    BEGINNER(9,9,  10),
-    ENTHUSIAST(16, 16, 40),
-    PROFESSIONAL(16, 30,  99);
+    EASY(9,9,  10),
+    MEDIUM(16, 16, 40),
+    HARD(16, 30,  99);
 
     private final int rows;
     private final int cols;
