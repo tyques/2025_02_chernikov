@@ -34,7 +34,8 @@ public class GameEngine {
             return;
         }
 
-        gridService.revealCell(session.getGrid(), x, y);
+        revealCellAndCount(x, y);
+
         checkWinCondition();
     }
 
@@ -69,25 +70,6 @@ public class GameEngine {
         }
     }
 
-
-    private void checkWinCondition() {
-        int revealedCount = 0;
-        int totalCells = session.getDifficulty().getRows() * session.getDifficulty().getCols();
-        int mineCount = session.getDifficulty().getCountOfMins();
-
-        for (int r = 0; r < session.getDifficulty().getRows(); r++) {
-            for (int c = 0; c < session.getDifficulty().getCols(); c++) {
-                if (session.getGrid().getArea()[r][c].isRevealed()) {
-                    revealedCount++;
-                }
-            }
-        }
-
-        if (revealedCount == totalCells - mineCount) {
-            session.setGameState(GameState.WON);
-            session.stopTimer();
-        }
-    }
 
     public void revealAllMines() {
         gridService.revealAllMines(session.getGrid());
@@ -136,4 +118,36 @@ public class GameEngine {
         return achievementRepository.load(difficulty);
     }
 
+    private void checkWinCondition() {
+        int totalCells = session.getDifficulty().getRows() * session.getDifficulty().getCols();
+        int mineCount = session.getDifficulty().getCountOfMins();
+        int targetCount = totalCells - mineCount;
+
+        if (session.getRevealedCells() == targetCount) {
+            session.setGameState(GameState.WON);
+            session.stopTimer();
+        }
+    }
+
+    private void revealCellAndCount(int x, int y) {
+        Grid grid = session.getGrid();
+        Cell cell = grid.getArea()[y][x];
+
+        if (cell.isRevealed() || cell.isFlagged()) {
+            return;
+        }
+
+        cell.setRevealed();
+        session.incrementRevealedCells();
+
+        if (cell.getAdjacentMines() == 0) {
+            for (int r = y - 1; r <= y + 1; r++) {
+                for (int c = x - 1; c <= x + 1; c++) {
+                    if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && !(r == y && c == x)) {
+                        revealCellAndCount(c, r);
+                    }
+                }
+            }
+        }
+    }
 }

@@ -5,7 +5,6 @@ public class Grid {
     private final int cols;
     private final int countOfMins;
     private final Cell[][] area;
-    private int flagsPlaced;
 
 
     public Grid(Difficulty difficulty) {
@@ -13,7 +12,6 @@ public class Grid {
         this.cols = difficulty.getCols();
         this.countOfMins = difficulty.getCountOfMins();
         this.area = new Cell[rows][cols];
-        this.flagsPlaced = 0;
         initArea();
     }
 

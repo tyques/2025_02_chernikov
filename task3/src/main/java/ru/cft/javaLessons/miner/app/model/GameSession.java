@@ -7,6 +7,7 @@ public class GameSession {
     private int flagsPlaced;
     private int elapsedTime; // in seconds
     private boolean timerRunning;
+    private int revealedCells;
 
 
     public GameSession(Difficulty difficulty) {
@@ -16,6 +17,7 @@ public class GameSession {
         this.flagsPlaced = 0;
         this.elapsedTime = 0;
         this.timerRunning = false;
+        this.revealedCells = 0;
     }
 
     public void incrementFlagsPlaces() {
@@ -24,6 +26,14 @@ public class GameSession {
 
     public void decrementFlagsPlaced() {
         flagsPlaced--;
+    }
+
+    public void incrementRevealedCells() {
+        revealedCells++;
+    }
+
+    public int getRevealedCells() {
+        return revealedCells;
     }
 
     public void startTimer() {
