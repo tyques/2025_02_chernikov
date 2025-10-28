@@ -1,6 +1,6 @@
 package ru.cft.javaLessons.miner.app.model;
 
-public record Record(
+public record Achievement(
         String name,
         int time
 ) {

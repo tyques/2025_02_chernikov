@@ -37,15 +37,15 @@ public class HighScoresWindow extends JDialog {
         setLocationRelativeTo(null);
     }
 
-    public void setNoviceRecord(String winnerName, int timeValue) {
+    public void setNoviceAchievement(String winnerName, int timeValue) {
         noviceRecordLabel.setText(createRecordText(winnerName, timeValue));
     }
 
-    public void setMediumRecord(String winnerName, int timeValue) {
+    public void setMediumAchievement(String winnerName, int timeValue) {
         mediumRecordLabel.setText(createRecordText(winnerName, timeValue));
     }
 
-    public void setExpertRecord(String winnerName, int timeValue) {
+    public void setExpertAchievement(String winnerName, int timeValue) {
         expertRecordLabel.setText(createRecordText(winnerName, timeValue));
     }
 

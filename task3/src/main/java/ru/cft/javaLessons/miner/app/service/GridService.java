@@ -54,6 +54,18 @@ public class GridService {
         return count;
     }
 
+    public byte countFlagsAround(Grid grid, int row, int col) {
+        byte count = 0;
+        for (int r = row - 1; r <= row + 1; r++) {
+            for (int c = col - 1; c <= col + 1; c++) {
+                if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && grid.getArea()[r][c].isFlagged()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     public void revealCell(Grid grid, int x, int y) {
         Cell cell = grid.getArea()[y][x];
         if (cell.isRevealed() || cell.isFlagged()) {
