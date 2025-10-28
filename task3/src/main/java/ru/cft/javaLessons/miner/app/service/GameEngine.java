@@ -94,7 +94,9 @@ public class GameEngine {
     }
 
     public boolean isNewAchievement() {
-        if (session.getGameState() != GameState.WON) return false;
+        if (session.getGameState() != GameState.WON) {
+            return false;
+        }
         Achievement oldAchievement = achievementRepository.load(session.getDifficulty());
         return session.getElapsedTime() < oldAchievement.time();
     }

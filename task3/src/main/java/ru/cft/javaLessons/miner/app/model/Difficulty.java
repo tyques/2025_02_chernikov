@@ -1,7 +1,7 @@
 package ru.cft.javaLessons.miner.app.model;
 
 public enum Difficulty {
-    EASY(9,9,  10),
+    EASY(9,9,  3),
     MEDIUM(16, 16, 40),
     HARD(16, 30,  99);
 

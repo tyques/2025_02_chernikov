@@ -121,12 +121,14 @@ public class GameController implements CellEventListener, GameTypeListener {
         LoseWindow loseWindow = new LoseWindow(view);
         loseWindow.setNewGameListener(e -> startNewGame(gameEngine.getCurrentDifficulty()));
         loseWindow.setExitListener(e -> view.dispose());
+        loseWindow.setVisible(true);
     }
 
     private void showWinDialog() {
         WinWindow winWindow = new WinWindow(view);
         winWindow.setNewGameListener(e -> startNewGame(gameEngine.getCurrentDifficulty()));
         winWindow.setExitListener(e -> view.dispose());
+        winWindow.setVisible(true);
     }
 
     private void openSettings() {
