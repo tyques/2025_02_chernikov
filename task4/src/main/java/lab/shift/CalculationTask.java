@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.Callable;
 
 public class CalculationTask implements Callable<Double> {
-    public static final Logger logger = LoggerFactory.getLogger(CalculationTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(CalculationTask.class);
     private final long start;
     private final long end;
     private double result;
