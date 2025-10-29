@@ -3,6 +3,7 @@ package lab.shift;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -17,7 +18,7 @@ public class Main {
     public static void main() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Введите N (например, 10000000): ");
-        long n = scanner.nextLong();
+        int n = scanner.nextInt();
         scanner.close();
 
         logger.info("Начало вычислений для N = {}", n);
@@ -28,10 +29,10 @@ public class Main {
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
 
         List<CalculationTask> tasks = new ArrayList<>();
-        long partSize = n / numberOfThreads;
-        long start = 1;
+        int partSize = n / numberOfThreads;
+        int start = 1;
         for (int i = 0; i < numberOfThreads; i++) {
-            long end;
+            int end;
             if (i == numberOfThreads - 1) {
                 end = n;
             } else {
@@ -42,11 +43,11 @@ public class Main {
         }
 
         try {
-            List<Future<Double>> futures = executor.invokeAll(tasks);
+            List<Future<BigDecimal>> futures = executor.invokeAll(tasks);
 
-            double totalSum = 0;
-            for (Future<Double> future : futures) {
-                totalSum += future.get();
+            BigDecimal totalSum = BigDecimal.ZERO;
+            for (Future<BigDecimal> future : futures) {
+                totalSum = totalSum.add(future.get());
             }
 
             logger.info("Все задачи выполнены.");
