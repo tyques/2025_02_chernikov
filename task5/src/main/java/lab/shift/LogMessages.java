@@ -8,4 +8,6 @@ public final class LogMessages {
     public static final String THREAD_RESUMED = "{}, возобновил работу";
     public static final String RESOURCE_PRODUCED = "{} ресурс произведен. Id ресурса: {}. \n Количество ресурсов на складе: {}";
     public static final String RESOURCE_CONSUMED = "{} ресурс потреблён. Id ресурса: {}. \n Количество ресурсов на складе: {}";
+    public static final String LOAD_CONFIG_EXCEPTION = "Не удалось загрузить файл конфигурации {}";
+    public static final String CONFIG_NOT_FOUND = "Ресурс '{}' не найден в classpath";
 }
