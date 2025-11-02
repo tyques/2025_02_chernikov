@@ -1,8 +1,8 @@
 package ru.cft.javaLessons.miner.app.repository;
 
 
-import ru.cft.javaLessons.miner.app.model.Achievement;
 import ru.cft.javaLessons.miner.app.model.Difficulty;
+import ru.cft.javaLessons.miner.view.Achievement;
 
 import java.io.File;
 import java.io.FileInputStream;

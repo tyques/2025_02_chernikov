@@ -1,153 +1,153 @@
 package ru.cft.javaLessons.miner.app.service;
 
-import ru.cft.javaLessons.miner.app.model.*;
-import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import ru.cft.javaLessons.miner.app.model.Cell;
+import ru.cft.javaLessons.miner.app.model.Difficulty;
+import ru.cft.javaLessons.miner.app.model.GameState;
+import ru.cft.javaLessons.miner.app.model.Grid;
+import ru.cft.javaLessons.miner.view.GameListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@RequiredArgsConstructor
 public class GameEngine {
     private final GridService gridService;
-    private final AchievementRepository achievementRepository;
-    private GameSession session;
+    private final List<GameListener> listeners = new ArrayList<>();
+    private Grid grid;
+    private GameState gameState;
+    @Getter
+    private Difficulty currentDifficulty = Difficulty.EASY;
 
-    public GameEngine(GridService gridService, AchievementRepository achievementRepository) {
-        this.gridService = gridService;
-        this.achievementRepository = achievementRepository;
+    public void addListener(GameListener listener) {
+        listeners.add(listener);
     }
 
     public void startNewGame(Difficulty difficulty) {
-        this.session = new GameSession(difficulty);
+        this.currentDifficulty = difficulty;
+        this.grid = new Grid(difficulty);
+        this.gameState = GameState.BEFORE_START;
+        notifyNewGame();
     }
 
     public void revealCell(int x, int y) {
-        if (session.getGameState() == GameState.BEFORE_START) {
-            session.setGameState(GameState.IN_PROGRESS);
-            session.startTimer();
-            gridService.placeMines(session.getGrid(), x, y);
+        if (gameState == GameState.WON || gameState == GameState.LOST) {
+            return;
         }
 
-        Cell cell = session.getGrid().getArea()[y][x];
+        if (gameState == GameState.BEFORE_START) {
+            gridService.placeMines(grid, x, y);
+            setGameState(GameState.IN_PROGRESS);
+        }
+
+        Cell cell = grid.getArea()[y][x];
         if (cell.isFlagged() || cell.isRevealed()) {
             return;
         }
 
         if (cell.isMine()) {
-            session.setGameState(GameState.LOST);
+            gridService.revealAllMines(grid);
+            setGameState(GameState.LOST);
             return;
         }
 
-        revealCellAndCount(x, y);
-
+        gridService.revealCellRecursive(grid, x, y);
+        notifyGridUpdated();
         checkWinCondition();
     }
 
     public void toggleFlag(int x, int y) {
-        Cell cell = session.getGrid().getArea()[y][x];
+        if (gameState != GameState.IN_PROGRESS && gameState != GameState.BEFORE_START) {
+            return;
+        }
+
+        Cell cell = grid.getArea()[y][x];
         if (cell.isRevealed()) {
             return;
         }
+
         if (cell.isFlagged()) {
             cell.setFlagged(false);
-            session.decrementFlagsPlaced();
+            grid.decrementFlagsPlaced();
         } else {
             cell.setFlagged(true);
-            session.incrementFlagsPlaces();
+            grid.incrementFlagsPlaced();
         }
+        notifyGridUpdated();
+        notifyFlagCountChanged();
     }
 
     public void revealAdjacentCells(int x, int y) {
-        Cell cell = session.getGrid().getArea()[y][x];
+        if (gameState != GameState.IN_PROGRESS) {
+            return;
+        }
+
+        Cell cell = grid.getArea()[y][x];
         if (!cell.isRevealed() || cell.getAdjacentMines() == 0) {
             return;
         }
 
-        int flagsAround = gridService.countFlagsAround(session.getGrid(), y, x);
+        int flagsAround = gridService.countFlagsAround(grid, y, x);
         if (flagsAround == cell.getAdjacentMines()) {
-            boolean mineRevealed = gridService.revealNeighbors(session.getGrid(), x, y);
+            int revealedBefore = grid.getRevealedCells();
+            boolean mineRevealed = gridService.revealNeighbors(grid, x, y);
+
             if (mineRevealed) {
-                session.setGameState(GameState.LOST);
+                gridService.revealAllMines(grid);
+                setGameState(GameState.LOST);
             } else {
+                if (grid.getRevealedCells() > revealedBefore) {
+                    notifyGridUpdated();
+                }
                 checkWinCondition();
             }
         }
     }
 
+    private void checkWinCondition() {
+        int totalCells = grid.getRows() * grid.getCols();
+        int mineCount = grid.getCountOfMins();
+        int targetCount = totalCells - mineCount;
 
-    public void revealAllMines() {
-        gridService.revealAllMines(session.getGrid());
-    }
-
-    public boolean isNewAchievement() {
-        if (session.getGameState() != GameState.WON) {
-            return false;
-        }
-        Achievement oldAchievement = achievementRepository.load(session.getDifficulty());
-        return session.getElapsedTime() < oldAchievement.time();
-    }
-
-    public void updateHighScore(String name) {
-        Achievement newAchievement = new Achievement(name, session.getElapsedTime());
-        achievementRepository.save(session.getDifficulty(), newAchievement);
-    }
-
-    public void incrementTime() {
-        if (session.getGameState() == GameState.IN_PROGRESS) {
-            session.incrementTime();
+        if (grid.getRevealedCells() >= targetCount) {
+            setGameState(GameState.WON);
         }
     }
 
-    public GameState getGameState() {
-        return session.getGameState();
-    }
-
-    public Difficulty getCurrentDifficulty() {
-        return session.getDifficulty();
-    }
-
-    public Cell[][] getGrid() {
-        return session.getGrid().getArea();
+    private void setGameState(GameState newGameState) {
+        if (this.gameState != newGameState) {
+            this.gameState = newGameState;
+            notifyGameStateChanged(newGameState);
+        }
     }
 
     public int getMinesLeft() {
-        return session.getDifficulty().getCountOfMins() - session.getFlagsPlaced();
+        return grid.getCountOfMins() - grid.getFlagsPlaced();
     }
 
-    public int getElapsedTime() {
-        return session.getElapsedTime();
+    private void notifyNewGame() {
+        for (GameListener listener : listeners) {
+            listener.onNewGame(grid);
+        }
+        notifyFlagCountChanged();
     }
 
-    public Achievement getAchievement(Difficulty difficulty) {
-        return achievementRepository.load(difficulty);
-    }
-
-    private void checkWinCondition() {
-        int totalCells = session.getDifficulty().getRows() * session.getDifficulty().getCols();
-        int mineCount = session.getDifficulty().getCountOfMins();
-        int targetCount = totalCells - mineCount;
-
-        if (session.getRevealedCells() == targetCount) {
-            session.setGameState(GameState.WON);
-            session.stopTimer();
+    private void notifyGridUpdated() {
+        for (GameListener listener : listeners) {
+            listener.onGridUpdate();
         }
     }
 
-    private void revealCellAndCount(int x, int y) {
-        Grid grid = session.getGrid();
-        Cell cell = grid.getArea()[y][x];
-
-        if (cell.isRevealed() || cell.isFlagged()) {
-            return;
+    private void notifyGameStateChanged(GameState newState) {
+        for (GameListener listener : listeners) {
+            listener.onGameStateChange(newState);
         }
+    }
 
-        cell.setRevealed();
-        session.incrementRevealedCells();
-
-        if (cell.getAdjacentMines() == 0) {
-            for (int r = y - 1; r <= y + 1; r++) {
-                for (int c = x - 1; c <= x + 1; c++) {
-                    if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && !(r == y && c == x)) {
-                        revealCellAndCount(c, r);
-                    }
-                }
-            }
+    private void notifyFlagCountChanged() {
+        for (GameListener listener : listeners) {
+            listener.onFlagCountChange(getMinesLeft());
         }
     }
 }

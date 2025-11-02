@@ -1,7 +1,10 @@
 package ru.cft.javaLessons.miner.app.model;
 
+import lombok.Getter;
+
+@Getter
 public enum Difficulty {
-    EASY(9,9,  3),
+    EASY(9, 9, 10),
     MEDIUM(16, 16, 40),
     HARD(16, 30,  99);
 
@@ -14,17 +17,5 @@ public enum Difficulty {
         this.rows = rows;
         this.cols = cols;
         this.countOfMins = countOfMins;
-    }
-
-    public int getCountOfMins() {
-        return countOfMins;
-    }
-
-    public int getCols() {
-        return cols;
-    }
-
-    public int getRows() {
-        return rows;
     }
 }

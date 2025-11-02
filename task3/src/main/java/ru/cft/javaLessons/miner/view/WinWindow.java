@@ -1,9 +1,12 @@
 package ru.cft.javaLessons.miner.view;
 
+import lombok.Setter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
+@Setter
 public class WinWindow extends JDialog {
     private ActionListener newGameListener;
     private ActionListener exitListener;
@@ -24,14 +27,6 @@ public class WinWindow extends JDialog {
         setResizable(false);
         pack();
         setLocationRelativeTo(null);
-    }
-
-    public void setNewGameListener(ActionListener newGameListener) {
-        this.newGameListener = newGameListener;
-    }
-
-    public void setExitListener(ActionListener exitListener) {
-        this.exitListener = exitListener;
     }
 
     private JLabel createLoseLabel(GridBagLayout layout) {

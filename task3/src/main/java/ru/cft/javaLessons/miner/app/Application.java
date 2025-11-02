@@ -5,19 +5,22 @@ import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
 import ru.cft.javaLessons.miner.app.repository.FileAchievementRepository;
 import ru.cft.javaLessons.miner.app.service.GameEngine;
 import ru.cft.javaLessons.miner.app.service.GridService;
-import ru.cft.javaLessons.miner.view.*;
+import ru.cft.javaLessons.miner.view.MainWindow;
 
 import javax.swing.*;
 
 public class Application {
-    public static void main(String[] args) {
+    static void main() {
         SwingUtilities.invokeLater(() -> {
-            MainWindow view = new MainWindow();
             AchievementRepository achievementRepository = new FileAchievementRepository();
             GridService gridService = new GridService();
-            GameEngine model = new GameEngine(gridService, achievementRepository);
+            GameEngine model = new GameEngine(gridService);
+            GameController controller = new GameController(model);
+            MainWindow view = new MainWindow(controller, achievementRepository);
 
-            new GameController(model, view);
+            model.addListener(view);
+
+            controller.startNewGame();
 
             view.setVisible(true);
         });

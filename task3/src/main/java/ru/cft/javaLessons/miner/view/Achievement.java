@@ -1,4 +1,4 @@
-package ru.cft.javaLessons.miner.app.model;
+package ru.cft.javaLessons.miner.view;
 
 public record Achievement(
         String name,

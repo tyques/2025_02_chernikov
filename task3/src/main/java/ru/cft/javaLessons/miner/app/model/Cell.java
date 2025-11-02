@@ -1,5 +1,8 @@
 package ru.cft.javaLessons.miner.app.model;
 
+import lombok.Data;
+
+@Data
 public class Cell {
     private boolean isMine;
     private boolean isRevealed;
@@ -14,35 +17,7 @@ public class Cell {
         this.adjacentMines = 0;
     }
 
-    public boolean isMine() {
-        return isMine;
-    }
-
-    public void setMine(boolean mine) {
-        isMine = mine;
-    }
-
-    public boolean isRevealed() {
-        return isRevealed;
-    }
-
     public void setRevealed() {
         isRevealed = true;
-    }
-
-    public boolean isFlagged() {
-        return isFlagged;
-    }
-
-    public void setFlagged(boolean flagged) {
-        isFlagged = flagged;
-    }
-
-    public int getAdjacentMines() {
-        return adjacentMines;
-    }
-
-    public void setAdjacentMines(byte adjacentMines) {
-        this.adjacentMines = adjacentMines;
     }
 }

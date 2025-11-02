@@ -9,5 +9,18 @@ repositories {
 
 dependencies {
     implementation "ch.qos.logback:logback-classic:1.2.3"
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'ru.cft.javaLessons.miner.app.Application'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

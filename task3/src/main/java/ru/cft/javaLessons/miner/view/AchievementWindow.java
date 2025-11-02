@@ -1,8 +1,11 @@
 package ru.cft.javaLessons.miner.view;
 
+import lombok.Setter;
+
 import javax.swing.*;
 import java.awt.*;
 
+@Setter
 public class AchievementWindow extends JDialog {
     private RecordNameListener nameListener;
 
@@ -24,10 +27,6 @@ public class AchievementWindow extends JDialog {
         setResizable(false);
         pack();
         setLocationRelativeTo(null);
-    }
-
-    public void setNameListener(RecordNameListener nameListener) {
-        this.nameListener = nameListener;
     }
 
     private JButton createOkButton(JTextField nameField) {
