@@ -4,36 +4,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 public class CalculationTask implements Callable<BigDecimal> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CalculationTask.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CalculationTask.class);
 
     private final int start;
     private final int end;
+    private final Function<Integer, BigDecimal> termFunction;
 
-    private static final MathContext MC = new MathContext(100);
-    private static final BigDecimal TWO = BigDecimal.valueOf(2);
-    private static final BigDecimal ONE = BigDecimal.ONE;
-
-
-    public CalculationTask(int start, int end) {
+    public CalculationTask(int start, int end, Function<Integer, BigDecimal> termFunction) {
         this.start = start;
         this.end = end;
+        this.termFunction = termFunction;
     }
 
     @Override
     public BigDecimal call() {
-        logger.info("Начало вычислений в диапазоне [{}, {}]", start, end);
+        LOGGER.info("Начало вычислений в диапазоне [{}, {}]", start, end);
         BigDecimal partialSum = BigDecimal.ZERO;
         for (int i = start; i <= end; i++) {
-            BigDecimal powerOfTwo = TWO.pow(i);
-            BigDecimal term = ONE.divide(powerOfTwo, MC);
+            BigDecimal term = termFunction.apply(i);
             partialSum = partialSum.add(term);
         }
-        logger.info("Завершение вычислений в диапазоне [{}, {}]. Результат: {}", start, end, partialSum);
+        LOGGER.info("Завершение вычислений в диапазоне [{}, {}].", start, end);
         return partialSum;
     }
 }
