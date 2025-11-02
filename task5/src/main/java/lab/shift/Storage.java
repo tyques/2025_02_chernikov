@@ -7,7 +7,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class Storage {
-    public static final Logger log = LoggerFactory.getLogger(Storage.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(Storage.class);
     private final int capacity;
     private final Queue<Resource> queue;
 
@@ -17,29 +17,27 @@ public class Storage {
     }
 
     public synchronized void put(Resource resource, int producerId) throws InterruptedException {
-        String threadType = "Producer-" + producerId;
         while (queue.size() == capacity) {
-            log.info(LogMessages.THREAD_WAITING_STORAGE_FULL, threadType);
+            LOGGER.atInfo().log(LogMessages.THREAD_WAITING_STORAGE_FULL);
             wait();
         }
-        log.info(LogMessages.THREAD_RESUMED, threadType);
+        LOGGER.atInfo().log(LogMessages.THREAD_RESUMED);
 
         queue.add(resource);
-        log.info(LogMessages.RESOURCE_PRODUCED, threadType, resource.id(), queue.size());
+        LOGGER.atInfo().addArgument(resource.id()).addArgument(queue.size()).log(LogMessages.RESOURCE_PRODUCED);
 
         notifyAll();
     }
 
     public synchronized Resource get(int consumerId) throws InterruptedException {
-        String threadType = "Consumer-" + consumerId;
-        while (queue.isEmpty()){
-            log.info(LogMessages.THREAD_WAITING_STORAGE_EMPTY, threadType);
+        while (queue.isEmpty()) {
+            LOGGER.atInfo().log(LogMessages.THREAD_WAITING_STORAGE_EMPTY);
             wait();
         }
-        log.info(LogMessages.THREAD_RESUMED, consumerId);
+        LOGGER.atInfo().log(LogMessages.THREAD_RESUMED);
 
         Resource resource = queue.poll();
-        log.info(LogMessages.RESOURCE_CONSUMED, consumerId, resource.id(), queue.size());
+        LOGGER.atInfo().addArgument(resource.id()).addArgument(queue.size()).log(LogMessages.RESOURCE_CONSUMED);
         notifyAll();
         return resource;
     }

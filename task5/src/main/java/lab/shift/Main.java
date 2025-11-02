@@ -8,19 +8,19 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class Main {
-    public static final Logger log = LoggerFactory.getLogger(Main.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static final String CONFIG_FILE = "config.properties";
 
     static void main() {
         Properties properties = new Properties();
         try (InputStream is = Main.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             if (is == null) {
-                log.warn(LogMessages.CONFIG_NOT_FOUND, CONFIG_FILE);
+                LOGGER.atWarn().addArgument(CONFIG_FILE).log(LogMessages.CONFIG_NOT_FOUND);
                 return;
             }
             properties.load(is);
         } catch (IOException e) {
-            log.error(LogMessages.LOAD_CONFIG_EXCEPTION, CONFIG_FILE, e);
+            LOGGER.atError().addArgument(CONFIG_FILE).setCause(e).log(LogMessages.LOAD_CONFIG_EXCEPTION);
             return;
         }
         int producerCount = Integer.parseInt(properties.getProperty("producerCount"));
@@ -29,12 +29,12 @@ public class Main {
         int consumerTime = Integer.parseInt(properties.getProperty("consumerTime"));
         int storageSize = Integer.parseInt(properties.getProperty("storageSize"));
 
-        log.info("Приложение запущено с параметрами:");
-        log.info(" - Количество производителей: {}", producerCount);
-        log.info(" - Количество потребителей: {}", consumerCount);
-        log.info(" - Время производства: {} мс", producerTime);
-        log.info(" - Время потребления: {} мс", consumerTime);
-        log.info(" - Размер склада: {}", storageSize);
+        LOGGER.atInfo().log(LogMessages.APP_START_WITH_PARAMS);
+        LOGGER.atInfo().addArgument(producerCount).log(LogMessages.PRODUCERS_COUNT);
+        LOGGER.atInfo().addArgument(consumerCount).log(LogMessages.CONSUMER_COUNT);
+        LOGGER.atInfo().addArgument(producerTime).log(LogMessages.PRODUCER_TIME);
+        LOGGER.atInfo().addArgument(consumerTime).log(LogMessages.CONSUMER_TIME);
+        LOGGER.atInfo().addArgument(storageSize).log(LogMessages.STORAGE_SIZE);
 
         Storage storage = new Storage(storageSize);
 
