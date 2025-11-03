@@ -12,15 +12,15 @@ public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static final MathContext MC = new MathContext(100);
 
-    static void main() {
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Введите N (например, 10000000): ");
+        LOGGER.info("Введите N (например, 10000000): ");
         int n = scanner.nextInt();
         scanner.close();
 
         LOGGER.info("Начало вычислений для N = {}", n);
 
-        Function<Integer, BigDecimal> termFunction = (i) -> {
+        Function<Integer, BigDecimal> termFunction = i -> {
             BigDecimal powerOfTwo = BigDecimal.valueOf(2).pow(i);
             return BigDecimal.ONE.divide(powerOfTwo, MC);
         };
@@ -28,6 +28,6 @@ public class Main {
         CalculationService calculationService = new CalculationService();
         BigDecimal result = calculationService.calculateSum(n, termFunction);
 
-        System.out.println("Итоговая сумма: " + result);
+        LOGGER.info("Итоговая сумма:{} ", result);
     }
 }
