@@ -16,28 +16,38 @@ public class Storage {
         this.queue = new ArrayDeque<>(capacity);
     }
 
-    public synchronized void put(Resource resource, int producerId) throws InterruptedException {
+    public synchronized void put(Resource resource) throws InterruptedException {
+        String threadName = Thread.currentThread().getName();
         while (queue.size() == capacity) {
-            LOGGER.atInfo().log(LogMessages.THREAD_WAITING_STORAGE_FULL);
+            LOGGER.atInfo().addArgument(threadName).log(LogMessages.THREAD_WAITING_STORAGE_FULL);
             wait();
         }
-        LOGGER.atInfo().log(LogMessages.THREAD_RESUMED);
+        LOGGER.atInfo().addArgument(threadName).log(LogMessages.THREAD_RESUMED);
 
         queue.add(resource);
-        LOGGER.atInfo().addArgument(resource.id()).addArgument(queue.size()).log(LogMessages.RESOURCE_PRODUCED);
+        LOGGER.atInfo()
+                .addArgument(threadName)
+                .addArgument(resource.id())
+                .addArgument(queue.size())
+                .log(LogMessages.RESOURCE_PRODUCED);
 
         notifyAll();
     }
 
-    public synchronized Resource get(int consumerId) throws InterruptedException {
+    public synchronized Resource get() throws InterruptedException {
+        String threadName = Thread.currentThread().getName();
         while (queue.isEmpty()) {
-            LOGGER.atInfo().log(LogMessages.THREAD_WAITING_STORAGE_EMPTY);
+            LOGGER.atInfo().addArgument(threadName).log(LogMessages.THREAD_WAITING_STORAGE_EMPTY);
             wait();
         }
-        LOGGER.atInfo().log(LogMessages.THREAD_RESUMED);
+        LOGGER.atInfo().addArgument(threadName).log(LogMessages.THREAD_RESUMED);
 
         Resource resource = queue.poll();
-        LOGGER.atInfo().addArgument(resource.id()).addArgument(queue.size()).log(LogMessages.RESOURCE_CONSUMED);
+        LOGGER.atInfo()
+                .addArgument(threadName)
+                .addArgument(resource.id())
+                .addArgument(queue.size())
+                .log(LogMessages.RESOURCE_CONSUMED);
         notifyAll();
         return resource;
     }
