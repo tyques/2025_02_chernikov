@@ -1,16 +1,8 @@
-group 'ru.cft.javaLessons.miner'
-version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-
-repositories {
-    mavenCentral()
+dependencies {
 }
 
-dependencies {
-    implementation "ch.qos.logback:logback-classic:1.2.3"
-    compileOnly 'org.projectlombok:lombok:1.18.42'
-    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+application {
+    mainClass = 'ru.cft.javaLessons.miner.app.Application'
 }
 
 jar {
