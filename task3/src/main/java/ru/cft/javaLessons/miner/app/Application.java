@@ -10,7 +10,7 @@ import ru.cft.javaLessons.miner.view.MainWindow;
 import javax.swing.*;
 
 public class Application {
-    static void main() {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             AchievementRepository achievementRepository = new FileAchievementRepository();
             GridService gridService = new GridService();
