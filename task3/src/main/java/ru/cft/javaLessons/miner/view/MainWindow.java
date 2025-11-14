@@ -1,34 +1,37 @@
 package ru.cft.javaLessons.miner.view;
 
 import ru.cft.javaLessons.miner.app.controller.GameController;
-import ru.cft.javaLessons.miner.app.model.Cell;
+import ru.cft.javaLessons.miner.app.listeners.*;
+import ru.cft.javaLessons.miner.app.listeners.events.CellInfo;
+import ru.cft.javaLessons.miner.app.listeners.events.GameStartInfo;
 import ru.cft.javaLessons.miner.app.model.Difficulty;
 import ru.cft.javaLessons.miner.app.model.GameState;
-import ru.cft.javaLessons.miner.app.model.Grid;
 import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
+import ru.cft.javaLessons.miner.app.repository.FileAchievementRepository;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
+import java.util.function.Consumer;
 
-public class MainWindow extends JFrame implements GameListener {
+public class MainWindow extends JFrame implements NewGameListener, GridUpdateListener, GameStateListener,
+        FlagCountListener, TimerListener, NewRecordListener, WinListener {
     private final Container contentPane;
     private final GridBagLayout mainLayout;
     private final GameController controller;
-    private final AchievementRepository achievementRepository;
-    private final Timer timer;
-    private int seconds;
-    private Grid grid;
+    private final AchievementRepository achievementRepository; // Only for high scores window
 
+    private Difficulty currentDifficulty;
     private JButton[][] cellButtons;
     private JLabel timerLabel;
     private JLabel bombsCounterLabel;
 
-    public MainWindow(GameController controller, AchievementRepository achievementRepository) {
+    public MainWindow(GameController controller) {
         super("Miner");
         this.controller = controller;
-        this.achievementRepository = achievementRepository;
+        this.achievementRepository = new FileAchievementRepository(); // For displaying scores
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -37,7 +40,6 @@ public class MainWindow extends JFrame implements GameListener {
         mainLayout = new GridBagLayout();
         contentPane.setLayout(mainLayout);
         contentPane.setBackground(new Color(144, 158, 184));
-        this.timer = new Timer(1000, e -> setTimerValue(++seconds));
     }
 
     private void createMenu() {
@@ -65,31 +67,27 @@ public class MainWindow extends JFrame implements GameListener {
     }
 
     @Override
-    public void onNewGame(Grid grid) {
-        this.grid = grid;
-        this.seconds = 0;
-        createGameField(grid.getRows(), grid.getCols());
-        setTimerValue(0);
-        timer.stop();
-        onGridUpdate();
-    }
-
-    @Override
-    public void onGridUpdate() {
-        Cell[][] cells = grid.getArea();
-        for (int y = 0; y < grid.getRows(); y++) {
-            for (int x = 0; x < grid.getCols(); x++) {
-                cellButtons[y][x].setIcon(mapCellToImage(cells[y][x]).getImageIcon());
+    public void onNewGame(GameStartInfo info) {
+        this.currentDifficulty = mapDifficultyFromSize(info.rows(), info.cols());
+        createGameField(info.rows(), info.cols());
+        for (int y = 0; y < info.rows(); y++) {
+            for (int x = 0; x < info.cols(); x++) {
+                cellButtons[y][x].setIcon(GameImage.CLOSED.getImageIcon());
             }
         }
     }
 
     @Override
+    public void onGridUpdate(Collection<CellInfo> updatedCells) {
+        for (CellInfo cell : updatedCells) {
+            cellButtons[cell.y()][cell.x()].setIcon(mapCellToImage(cell).getImageIcon());
+        }
+    }
+
+    @Override
     public void onGameStateChange(GameState newState) {
-        switch (newState) {
-            case IN_PROGRESS -> timer.start();
-            case WON -> handleWin();
-            case LOST -> handleLoss();
+        if (newState == GameState.LOST) {
+            handleLoss();
         }
     }
 
@@ -98,28 +96,27 @@ public class MainWindow extends JFrame implements GameListener {
         bombsCounterLabel.setText(String.valueOf(newFlagCount));
     }
 
-    private void setTimerValue(int value) {
-        timerLabel.setText(String.valueOf(value));
+    @Override
+    public void onTimeChange(int seconds) {
+        timerLabel.setText(String.valueOf(seconds));
     }
 
-    private void handleWin() {
-        timer.stop();
-        Achievement oldAchievement = achievementRepository.load(grid.getDifficulty());
-        if (seconds < oldAchievement.time()) {
-            AchievementWindow achievementWindow = new AchievementWindow(this);
-            achievementWindow.setNameListener(name -> {
-                achievementRepository.save(grid.getDifficulty(), new Achievement(name, seconds));
-                showWinDialog();
-            });
-            achievementWindow.setVisible(true);
-        } else {
+    @Override
+    public void onNewRecord(Consumer<String> nameConsumer) {
+        AchievementWindow achievementWindow = new AchievementWindow(this);
+        achievementWindow.setNameListener(name -> {
+            nameConsumer.accept(name);
             showWinDialog();
-        }
+        });
+        achievementWindow.setVisible(true);
+    }
+
+    @Override
+    public void onWin() {
+        showWinDialog();
     }
 
     private void handleLoss() {
-        timer.stop();
-        onGridUpdate();
         LoseWindow loseWindow = new LoseWindow(this);
         loseWindow.setNewGameListener(e -> controller.startNewGame());
         loseWindow.setExitListener(e -> dispose());
@@ -136,7 +133,7 @@ public class MainWindow extends JFrame implements GameListener {
     private void openSettings() {
         SettingsWindow settingsWindow = new SettingsWindow(this);
         settingsWindow.setGameTypeListener(controller);
-        settingsWindow.setGameType(mapDifficultyToGameType(grid.getDifficulty()));
+        settingsWindow.setGameType(mapDifficultyToGameType(this.currentDifficulty));
         settingsWindow.setVisible(true);
     }
 
@@ -151,14 +148,14 @@ public class MainWindow extends JFrame implements GameListener {
         highScoresWindow.setVisible(true);
     }
 
-    private GameImage mapCellToImage(Cell cell) {
+    private GameImage mapCellToImage(CellInfo cell) {
         if (!cell.isRevealed()) {
             return cell.isFlagged() ? GameImage.MARKED : GameImage.CLOSED;
         }
         if (cell.isMine()) {
             return GameImage.BOMB;
         }
-        return switch (cell.getAdjacentMines()) {
+        return switch (cell.adjacentMines()) {
             case 0 -> GameImage.EMPTY;
             case 1 -> GameImage.NUM_1;
             case 2 -> GameImage.NUM_2;
@@ -173,11 +170,19 @@ public class MainWindow extends JFrame implements GameListener {
     }
 
     private GameType mapDifficultyToGameType(Difficulty difficulty) {
+        if (difficulty == null) return GameType.NOVICE;
         return switch (difficulty) {
             case EASY -> GameType.NOVICE;
             case MEDIUM -> GameType.MEDIUM;
             case HARD -> GameType.EXPERT;
         };
+    }
+
+    private Difficulty mapDifficultyFromSize(int rows, int cols) {
+        if (rows == 9 && cols == 9) return Difficulty.EASY;
+        if (rows == 16 && cols == 16) return Difficulty.MEDIUM;
+        if (rows == 16 && cols == 30) return Difficulty.HARD;
+        return Difficulty.EASY;
     }
 
     public void createGameField(int rowsCount, int colsCount) {
@@ -217,7 +222,6 @@ public class MainWindow extends JFrame implements GameListener {
         }
         return buttonsPanel;
     }
-
 
     private void addButtonsPanel(JPanel buttonsPanel) {
         GridBagConstraints gbc = new GridBagConstraints();

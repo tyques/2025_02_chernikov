@@ -6,6 +6,7 @@ import ru.cft.javaLessons.miner.app.model.Grid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class GridService {
     public void placeMines(Grid grid, int firstClickX, int firstClickY) {
@@ -66,7 +67,7 @@ public class GridService {
         return count;
     }
 
-    public void revealCellRecursive(Grid grid, int x, int y) {
+    public void revealCellRecursive(Grid grid, int x, int y, Set<int[]> updatedCells) {
         Cell cell = grid.getArea()[y][x];
         if (cell.isRevealed() || cell.isFlagged()) {
             return;
@@ -74,19 +75,20 @@ public class GridService {
 
         cell.setRevealed();
         grid.incrementRevealedCells();
+        updatedCells.add(new int[]{y, x});
 
         if (cell.getAdjacentMines() == 0) {
             for (int r = y - 1; r <= y + 1; r++) {
                 for (int c = x - 1; c <= x + 1; c++) {
                     if (r >= 0 && r < grid.getRows() && c >= 0 && c < grid.getCols() && !(r == y && c == x)) {
-                        revealCellRecursive(grid, c, r);
+                        revealCellRecursive(grid, c, r, updatedCells);
                     }
                 }
             }
         }
     }
 
-    public boolean revealNeighbors(Grid grid, int x, int y) {
+    public boolean revealNeighbors(Grid grid, int x, int y, Set<int[]> updatedCells) {
         boolean mineRevealed = false;
         for (int r = y - 1; r <= y + 1; r++) {
             for (int c = x - 1; c <= x + 1; c++) {
@@ -96,7 +98,7 @@ public class GridService {
                         if (neighbor.isMine()) {
                             mineRevealed = true;
                         }
-                        revealCellRecursive(grid, c, r);
+                        revealCellRecursive(grid, c, r, updatedCells);
                     }
                 }
             }

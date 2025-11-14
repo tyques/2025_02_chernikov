@@ -2,26 +2,49 @@ package ru.cft.javaLessons.miner.app.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import ru.cft.javaLessons.miner.app.listeners.FlagCountListener;
+import ru.cft.javaLessons.miner.app.listeners.GameStateListener;
+import ru.cft.javaLessons.miner.app.listeners.GridUpdateListener;
+import ru.cft.javaLessons.miner.app.listeners.NewGameListener;
+import ru.cft.javaLessons.miner.app.listeners.events.CellInfo;
+import ru.cft.javaLessons.miner.app.listeners.events.GameStartInfo;
 import ru.cft.javaLessons.miner.app.model.Cell;
 import ru.cft.javaLessons.miner.app.model.Difficulty;
 import ru.cft.javaLessons.miner.app.model.GameState;
 import ru.cft.javaLessons.miner.app.model.Grid;
-import ru.cft.javaLessons.miner.view.GameListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class GameEngine {
     private final GridService gridService;
-    private final List<GameListener> listeners = new ArrayList<>();
+    private final List<NewGameListener> newGameListeners = new ArrayList<>();
+    private final List<GridUpdateListener> gridUpdateListeners = new ArrayList<>();
+    private final List<GameStateListener> gameStateListeners = new ArrayList<>();
+    private final List<FlagCountListener> flagCountListeners = new ArrayList<>();
     private Grid grid;
     private GameState gameState;
     @Getter
     private Difficulty currentDifficulty = Difficulty.EASY;
 
-    public void addListener(GameListener listener) {
-        listeners.add(listener);
+    public void addNewGameListener(NewGameListener listener) {
+        newGameListeners.add(listener);
+    }
+
+    public void addGridUpdateListener(GridUpdateListener listener) {
+        gridUpdateListeners.add(listener);
+    }
+
+    public void addGameStateListener(GameStateListener listener) {
+        gameStateListeners.add(listener);
+    }
+
+    public void addFlagCountListener(FlagCountListener listener) {
+        flagCountListeners.add(listener);
     }
 
     public void startNewGame(Difficulty difficulty) {
@@ -48,12 +71,13 @@ public class GameEngine {
 
         if (cell.isMine()) {
             gridService.revealAllMines(grid);
+            notifyGridUpdated(getAllCellsInfo());
             setGameState(GameState.LOST);
             return;
         }
-
-        gridService.revealCellRecursive(grid, x, y);
-        notifyGridUpdated();
+        Set<int[]> updatedCells = new HashSet<>();
+        gridService.revealCellRecursive(grid, x, y, updatedCells);
+        notifyGridUpdated(getUpdatedCellsInfo(updatedCells));
         checkWinCondition();
     }
 
@@ -61,12 +85,10 @@ public class GameEngine {
         if (gameState != GameState.IN_PROGRESS && gameState != GameState.BEFORE_START) {
             return;
         }
-
         Cell cell = grid.getArea()[y][x];
         if (cell.isRevealed()) {
             return;
         }
-
         if (cell.isFlagged()) {
             cell.setFlagged(false);
             grid.decrementFlagsPlaced();
@@ -74,7 +96,7 @@ public class GameEngine {
             cell.setFlagged(true);
             grid.incrementFlagsPlaced();
         }
-        notifyGridUpdated();
+        notifyGridUpdated(Set.of(new CellInfo(x, y, cell)));
         notifyFlagCountChanged();
     }
 
@@ -82,23 +104,22 @@ public class GameEngine {
         if (gameState != GameState.IN_PROGRESS) {
             return;
         }
-
         Cell cell = grid.getArea()[y][x];
         if (!cell.isRevealed() || cell.getAdjacentMines() == 0) {
             return;
         }
-
         int flagsAround = gridService.countFlagsAround(grid, y, x);
         if (flagsAround == cell.getAdjacentMines()) {
-            int revealedBefore = grid.getRevealedCells();
-            boolean mineRevealed = gridService.revealNeighbors(grid, x, y);
+            Set<int[]> updatedCells = new HashSet<>();
+            boolean mineRevealed = gridService.revealNeighbors(grid, x, y, updatedCells);
 
             if (mineRevealed) {
                 gridService.revealAllMines(grid);
                 setGameState(GameState.LOST);
+                notifyGridUpdated(getAllCellsInfo());
             } else {
-                if (grid.getRevealedCells() > revealedBefore) {
-                    notifyGridUpdated();
+                if (!updatedCells.isEmpty()) {
+                    notifyGridUpdated(getUpdatedCellsInfo(updatedCells));
                 }
                 checkWinCondition();
             }
@@ -118,36 +139,44 @@ public class GameEngine {
     private void setGameState(GameState newGameState) {
         if (this.gameState != newGameState) {
             this.gameState = newGameState;
-            notifyGameStateChanged(newGameState);
+            gameStateListeners.forEach(listener -> listener.onGameStateChange(newGameState));
         }
     }
 
-    public int getMinesLeft() {
+    private int getMinesLeft() {
         return grid.getCountOfMins() - grid.getFlagsPlaced();
     }
 
     private void notifyNewGame() {
-        for (GameListener listener : listeners) {
-            listener.onNewGame(grid);
-        }
+        GameStartInfo info = new GameStartInfo(grid.getRows(), grid.getCols(), grid.getCountOfMins());
+        newGameListeners.forEach(listener -> listener.onNewGame(info));
         notifyFlagCountChanged();
     }
 
-    private void notifyGridUpdated() {
-        for (GameListener listener : listeners) {
-            listener.onGridUpdate();
+    private void notifyGridUpdated(Set<CellInfo> updatedCells) {
+        if (updatedCells.isEmpty()) {
+            return;
         }
-    }
-
-    private void notifyGameStateChanged(GameState newState) {
-        for (GameListener listener : listeners) {
-            listener.onGameStateChange(newState);
-        }
+        gridUpdateListeners.forEach(listener -> listener.onGridUpdate(updatedCells));
     }
 
     private void notifyFlagCountChanged() {
-        for (GameListener listener : listeners) {
-            listener.onFlagCountChange(getMinesLeft());
+        flagCountListeners.forEach(listener -> listener.onFlagCountChange(getMinesLeft()));
+    }
+
+    private Set<CellInfo> getUpdatedCellsInfo(Set<int[]> updatedCellCoords) {
+        return updatedCellCoords.stream()
+                .map(coords -> new CellInfo(coords[1], coords[0], grid.getArea()[coords[0]][coords[1]]))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<CellInfo> getAllCellsInfo() {
+        Set<CellInfo> allCells = new HashSet<>();
+        for (int row = 0; row < grid.getRows(); row++) {
+            for (int col = 0; col < grid.getCols(); col++) {
+                allCells.add(new CellInfo(col, row, grid.getArea()[row][col]));
+            }
         }
+        return allCells;
     }
 }
