@@ -1,91 +1,194 @@
 package ru.cft.javaLessons.miner.view;
 
+import ru.cft.javaLessons.miner.app.controller.GameController;
+import ru.cft.javaLessons.miner.app.model.Difficulty;
+import ru.cft.javaLessons.miner.app.model.GameState;
+import ru.cft.javaLessons.miner.app.model.listeners.*;
+import ru.cft.javaLessons.miner.app.model.listeners.events.CellInfo;
+import ru.cft.javaLessons.miner.app.model.listeners.events.GameStartInfo;
+import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
+import ru.cft.javaLessons.miner.app.repository.FileAchievementRepository;
+import ru.cft.javaLessons.miner.app.timer.TimerListener;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
+import java.util.function.Consumer;
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements NewGameListener, GridUpdateListener, GameStateListener,
+        FlagCountListener, TimerListener, NewRecordListener, WinListener {
     private final Container contentPane;
     private final GridBagLayout mainLayout;
+    private final GameController controller;
+    private final AchievementRepository achievementRepository; // Only for high scores window
 
-    private JMenuItem newGameMenu;
-    private JMenuItem highScoresMenu;
-    private JMenuItem settingsMenu;
-    private JMenuItem exitMenu;
-
-    private CellEventListener listener;
-
+    private Difficulty currentDifficulty;
     private JButton[][] cellButtons;
     private JLabel timerLabel;
     private JLabel bombsCounterLabel;
 
-    public MainWindow() {
+    public MainWindow(GameController controller) {
         super("Miner");
+        this.controller = controller;
+        this.achievementRepository = new FileAchievementRepository(); // For displaying scores
+
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
-
         createMenu();
-
         contentPane = getContentPane();
         mainLayout = new GridBagLayout();
         contentPane.setLayout(mainLayout);
-
         contentPane.setBackground(new Color(144, 158, 184));
     }
 
     private void createMenu() {
         JMenuBar menuBar = new JMenuBar();
         JMenu gameMenu = new JMenu("Game");
+        JMenuItem newGameMenu = new JMenuItem("New Game");
+        JMenuItem highScoresMenu = new JMenuItem("High Scores");
+        JMenuItem settingsMenu = new JMenuItem("Settings");
+        JMenuItem exitMenu = new JMenuItem("Exit");
 
-        gameMenu.add(newGameMenu = new JMenuItem("New Game"));
+        newGameMenu.addActionListener(e -> controller.startNewGame());
+        highScoresMenu.addActionListener(e -> openHighScores());
+        settingsMenu.addActionListener(e -> openSettings());
+        exitMenu.addActionListener(e -> dispose());
+
+        gameMenu.add(newGameMenu);
         gameMenu.addSeparator();
-        gameMenu.add(highScoresMenu = new JMenuItem("High Scores"));
-        gameMenu.add(settingsMenu = new JMenuItem("Settings"));
+        gameMenu.add(highScoresMenu);
+        gameMenu.add(settingsMenu);
         gameMenu.addSeparator();
-        gameMenu.add(exitMenu = new JMenuItem("Exit"));
+        gameMenu.add(exitMenu);
 
         menuBar.add(gameMenu);
         setJMenuBar(menuBar);
     }
 
-    public void setNewGameMenuAction(ActionListener listener) {
-        newGameMenu.addActionListener(listener);
+    @Override
+    public void onNewGame(GameStartInfo info) {
+        this.currentDifficulty = mapDifficultyFromSize(info.rows(), info.cols());
+        createGameField(info.rows(), info.cols());
+        for (int y = 0; y < info.rows(); y++) {
+            for (int x = 0; x < info.cols(); x++) {
+                cellButtons[y][x].setIcon(GameImage.CLOSED.getImageIcon());
+            }
+        }
     }
 
-    public void setHighScoresMenuAction(ActionListener listener) {
-        highScoresMenu.addActionListener(listener);
+    @Override
+    public void onGridUpdate(Collection<CellInfo> updatedCells) {
+        for (CellInfo cell : updatedCells) {
+            cellButtons[cell.y()][cell.x()].setIcon(mapCellToImage(cell).getImageIcon());
+        }
     }
 
-    public void setSettingsMenuAction(ActionListener listener) {
-        settingsMenu.addActionListener(listener);
+    @Override
+    public void onGameStateChange(GameState newState) {
+        if (newState == GameState.LOST) {
+            handleLoss();
+        }
     }
 
-    public void setExitMenuAction(ActionListener listener) {
-        exitMenu.addActionListener(listener);
+    @Override
+    public void onFlagCountChange(int newFlagCount) {
+        bombsCounterLabel.setText(String.valueOf(newFlagCount));
     }
 
-    public void setCellListener(CellEventListener listener) {
-        this.listener = listener;
+    @Override
+    public void onTimeChange(int seconds) {
+        timerLabel.setText(String.valueOf(seconds));
     }
 
-    public void setCellImage(int x, int y, GameImage gameImage) {
-        cellButtons[y][x].setIcon(gameImage.getImageIcon());
+    @Override
+    public void onNewRecord(Consumer<String> nameConsumer) {
+        AchievementWindow achievementWindow = new AchievementWindow(this);
+        achievementWindow.setNameListener(name -> {
+            nameConsumer.accept(name);
+            showWinDialog();
+        });
+        achievementWindow.setVisible(true);
     }
 
-    public void setBombsCount(int bombsCount) {
-        bombsCounterLabel.setText(String.valueOf(bombsCount));
+    @Override
+    public void onWin() {
+        showWinDialog();
     }
 
-    public void setTimerValue(int value) {
-        timerLabel.setText(String.valueOf(value));
+    private void handleLoss() {
+        LoseWindow loseWindow = new LoseWindow(this);
+        loseWindow.setNewGameListener(e -> controller.startNewGame());
+        loseWindow.setExitListener(e -> dispose());
+        loseWindow.setVisible(true);
+    }
+
+    private void showWinDialog() {
+        WinWindow winWindow = new WinWindow(this);
+        winWindow.setNewGameListener(e -> controller.startNewGame());
+        winWindow.setExitListener(e -> dispose());
+        winWindow.setVisible(true);
+    }
+
+    private void openSettings() {
+        SettingsWindow settingsWindow = new SettingsWindow(this);
+        settingsWindow.setGameTypeListener(controller);
+        settingsWindow.setGameType(mapDifficultyToGameType(this.currentDifficulty));
+        settingsWindow.setVisible(true);
+    }
+
+    private void openHighScores() {
+        HighScoresWindow highScoresWindow = new HighScoresWindow(this);
+        Achievement novice = achievementRepository.load(Difficulty.EASY);
+        Achievement medium = achievementRepository.load(Difficulty.MEDIUM);
+        Achievement expert = achievementRepository.load(Difficulty.HARD);
+        highScoresWindow.setNoviceAchievement(novice.name(), novice.time());
+        highScoresWindow.setMediumAchievement(medium.name(), medium.time());
+        highScoresWindow.setExpertAchievement(expert.name(), expert.time());
+        highScoresWindow.setVisible(true);
+    }
+
+    private GameImage mapCellToImage(CellInfo cell) {
+        if (!cell.isRevealed()) {
+            return cell.isFlagged() ? GameImage.MARKED : GameImage.CLOSED;
+        }
+        if (cell.isMine()) {
+            return GameImage.BOMB;
+        }
+        return switch (cell.adjacentMines()) {
+            case 0 -> GameImage.EMPTY;
+            case 1 -> GameImage.NUM_1;
+            case 2 -> GameImage.NUM_2;
+            case 3 -> GameImage.NUM_3;
+            case 4 -> GameImage.NUM_4;
+            case 5 -> GameImage.NUM_5;
+            case 6 -> GameImage.NUM_6;
+            case 7 -> GameImage.NUM_7;
+            case 8 -> GameImage.NUM_8;
+            default -> GameImage.EMPTY;
+        };
+    }
+
+    private GameType mapDifficultyToGameType(Difficulty difficulty) {
+        if (difficulty == null) return GameType.NOVICE;
+        return switch (difficulty) {
+            case EASY -> GameType.NOVICE;
+            case MEDIUM -> GameType.MEDIUM;
+            case HARD -> GameType.EXPERT;
+        };
+    }
+
+    private Difficulty mapDifficultyFromSize(int rows, int cols) {
+        if (rows == 9 && cols == 9) return Difficulty.EASY;
+        if (rows == 16 && cols == 16) return Difficulty.MEDIUM;
+        if (rows == 16 && cols == 30) return Difficulty.HARD;
+        return Difficulty.EASY;
     }
 
     public void createGameField(int rowsCount, int colsCount) {
         contentPane.removeAll();
         setPreferredSize(new Dimension(20 * colsCount + 70, 20 * rowsCount + 110));
-
         addButtonsPanel(createButtonsPanel(rowsCount, colsCount));
         addTimerImage();
         addTimerLabel(timerLabel = new JLabel("0"));
@@ -100,39 +203,24 @@ public class MainWindow extends JFrame {
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setPreferredSize(new Dimension(20 * numberOfCols, 20 * numberOfRows));
         buttonsPanel.setLayout(new GridLayout(numberOfRows, numberOfCols, 0, 0));
-
         for (int row = 0; row < numberOfRows; row++) {
             for (int col = 0; col < numberOfCols; col++) {
                 final int x = col;
                 final int y = row;
-
-                cellButtons[y][x] = new JButton(GameImage.CLOSED.getImageIcon());
+                cellButtons[y][x] = new JButton();
                 cellButtons[y][x].addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseReleased(MouseEvent e) {
-                        if (listener == null) {
-                            return;
-                        }
-
                         switch (e.getButton()) {
-                            case MouseEvent.BUTTON1:
-                                listener.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
-                                break;
-                            case MouseEvent.BUTTON2:
-                                listener.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
-                                break;
-                            case MouseEvent.BUTTON3:
-                                listener.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
-                                break;
-                            default:
-                                // Other mouse buttons are ignored
+                            case MouseEvent.BUTTON1 -> controller.onMouseClick(x, y, ButtonType.LEFT_BUTTON);
+                            case MouseEvent.BUTTON3 -> controller.onMouseClick(x, y, ButtonType.RIGHT_BUTTON);
+                            case MouseEvent.BUTTON2 -> controller.onMouseClick(x, y, ButtonType.MIDDLE_BUTTON);
                         }
                     }
                 });
                 buttonsPanel.add(cellButtons[y][x]);
             }
         }
-
         return buttonsPanel;
     }
 

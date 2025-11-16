@@ -26,7 +26,7 @@ public enum GameImage {
         this.fileName = fileName;
     }
 
-    public synchronized ImageIcon getImageIcon() {
+    public ImageIcon getImageIcon() {
         if (imageIcon == null) {
             imageIcon = new ImageIcon(ClassLoader.getSystemResource(fileName));
         }

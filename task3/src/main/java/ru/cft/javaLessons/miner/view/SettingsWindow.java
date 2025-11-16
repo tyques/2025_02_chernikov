@@ -1,5 +1,7 @@
 package ru.cft.javaLessons.miner.view;
 
+import lombok.Setter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ public class SettingsWindow extends JDialog {
     private final Map<GameType, JRadioButton> radioButtonsMap = new HashMap<>(3);
     private final ButtonGroup radioGroup = new ButtonGroup();
 
+    @Setter
     private GameTypeListener gameTypeListener;
     private GameType gameType;
 
@@ -22,7 +25,7 @@ public class SettingsWindow extends JDialog {
         int gridY = 0;
         contentPane.add(createRadioButton("Novice (10 mines, 9х9)", GameType.NOVICE, layout, gridY++));
         contentPane.add(createRadioButton("Medium (40 mines, 16х16)", GameType.MEDIUM, layout, gridY++));
-        contentPane.add(createRadioButton("Expert (99 mines, 16х30)", GameType.EXPERT, layout, gridY++));
+        contentPane.add(createRadioButton("Expert (99 mines, 16х30)", GameType.EXPERT, layout, gridY));
 
         contentPane.add(createOkButton(layout));
         contentPane.add(createCloseButton(layout));
@@ -45,10 +48,6 @@ public class SettingsWindow extends JDialog {
 
         this.gameType = gameType;
         radioGroup.setSelected(radioButton.getModel(), true);
-    }
-
-    public void setGameTypeListener(GameTypeListener gameTypeListener) {
-        this.gameTypeListener = gameTypeListener;
     }
 
     private JRadioButton createRadioButton(String radioButtonText, GameType gameType, GridBagLayout layout, int gridY) {

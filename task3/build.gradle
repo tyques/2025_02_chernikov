@@ -1,15 +1,20 @@
-group 'ru.cft.javaLessons.miner'
-version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
-dependencies {
-    implementation "ch.qos.logback:logback-classic:1.2.3"
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
+application {
+    mainClass = 'ru.cft.javaLessons.miner.app.Application'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'ru.cft.javaLessons.miner.app.Application'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
