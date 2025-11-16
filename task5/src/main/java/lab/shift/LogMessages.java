@@ -19,6 +19,6 @@ public final class LogMessages {
     public static final String PRODUCER_TIME = " - Время производства: {} мс";
     public static final String CONSUMER_TIME = " - Время потребления: {} мс";
     public static final String STORAGE_SIZE = " - Размер склада: {}";
-    public static final String APP_SHUTTING_DOWN = "Приложение работает... Завершение через 20 секунд.";
+    public static final String APP_SHUTTING_DOWN = "Все потоки завершены с помощью shutdown hook";
     public static final String INITIATING_SHUTDOWN = "Инициируется остановка потоков...";
 }

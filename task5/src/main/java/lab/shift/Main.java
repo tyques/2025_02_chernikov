@@ -6,9 +6,12 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static lab.shift.LogMessages.APP_SHUTTING_DOWN;
+import static lab.shift.LogMessages.INITIATING_SHUTDOWN;
+
 public class Main {
     public static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-    private static final int APP_RUNTIME_MS = 20000;
+    private static final int APP_RUNTIME_MS = 5000;
 
     public static void main(String[] args) {
         Configuration config = new Configuration();
@@ -38,16 +41,19 @@ public class Main {
             consumerThread.start();
         }
 
-        try {
-            LOGGER.info(LogMessages.APP_SHUTTING_DOWN);
-            Thread.sleep(APP_RUNTIME_MS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            LOGGER.info(LogMessages.INITIATING_SHUTDOWN);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info(INITIATING_SHUTDOWN);
             for (Thread thread : threads) {
                 thread.interrupt();
             }
-        }
+            for (Thread thread : threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            LOGGER.info(APP_SHUTTING_DOWN);
+        }));
     }
 }
