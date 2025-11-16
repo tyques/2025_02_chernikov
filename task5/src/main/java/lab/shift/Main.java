@@ -6,12 +6,17 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static lab.shift.LogMessages.APP_SHUTTING_DOWN;
-import static lab.shift.LogMessages.INITIATING_SHUTDOWN;
 
 public class Main {
+    public static final String APP_START_WITH_PARAMS = "Приложение запущено с параметрами:";
+    public static final String PRODUCERS_COUNT = " - Количество производителей: {}";
+    public static final String CONSUMER_COUNT = " - Количество потребителей: {}";
+    public static final String PRODUCER_TIME = " - Время производства: {} мс";
+    public static final String CONSUMER_TIME = " - Время потребления: {} мс";
+    public static final String STORAGE_SIZE = " - Размер склада: {}";
+    public static final String APP_SHUTTING_DOWN = "Все потоки завершены с помощью shutdown hook";
+    public static final String INITIATING_SHUTDOWN = "Инициируется остановка потоков...";
     public static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-    private static final int APP_RUNTIME_MS = 5000;
 
     public static void main(String[] args) {
         Configuration config = new Configuration();
@@ -19,12 +24,12 @@ public class Main {
             return;
         }
 
-        LOGGER.atInfo().log(LogMessages.APP_START_WITH_PARAMS);
-        LOGGER.atInfo().addArgument(config.getProducerCount()).log(LogMessages.PRODUCERS_COUNT);
-        LOGGER.atInfo().addArgument(config.getConsumerCount()).log(LogMessages.CONSUMER_COUNT);
-        LOGGER.atInfo().addArgument(config.getProducerTime()).log(LogMessages.PRODUCER_TIME);
-        LOGGER.atInfo().addArgument(config.getConsumerTime()).log(LogMessages.CONSUMER_TIME);
-        LOGGER.atInfo().addArgument(config.getStorageSize()).log(LogMessages.STORAGE_SIZE);
+        LOGGER.atInfo().log(APP_START_WITH_PARAMS);
+        LOGGER.atInfo().addArgument(config.getProducerCount()).log(PRODUCERS_COUNT);
+        LOGGER.atInfo().addArgument(config.getConsumerCount()).log(CONSUMER_COUNT);
+        LOGGER.atInfo().addArgument(config.getProducerTime()).log(PRODUCER_TIME);
+        LOGGER.atInfo().addArgument(config.getConsumerTime()).log(CONSUMER_TIME);
+        LOGGER.atInfo().addArgument(config.getStorageSize()).log(STORAGE_SIZE);
 
         Storage storage = new Storage(config.getStorageSize());
         List<Thread> threads = new ArrayList<>();

@@ -10,6 +10,8 @@ import java.util.Properties;
 public class Configuration {
     private static final Logger LOGGER = LoggerFactory.getLogger(Configuration.class);
     private static final String CONFIG_FILE = "config.properties";
+    public static final String LOAD_CONFIG_EXCEPTION = "Не удалось загрузить файл конфигурации {}";
+    public static final String CONFIG_NOT_FOUND = "Ресурс '{}' не найден в classpath";
 
     private int producerCount;
     private int consumerCount;
@@ -21,12 +23,12 @@ public class Configuration {
         Properties properties = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             if (is == null) {
-                LOGGER.atWarn().addArgument(CONFIG_FILE).log(LogMessages.CONFIG_NOT_FOUND);
+                LOGGER.atWarn().addArgument(CONFIG_FILE).log(CONFIG_NOT_FOUND);
                 return false;
             }
             properties.load(is);
         } catch (IOException e) {
-            LOGGER.atError().addArgument(CONFIG_FILE).setCause(e).log(LogMessages.LOAD_CONFIG_EXCEPTION);
+            LOGGER.atError().addArgument(CONFIG_FILE).setCause(e).log(LOAD_CONFIG_EXCEPTION);
             return false;
         }
 
