@@ -5,8 +5,8 @@ import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
 import ru.cft.javaLessons.miner.app.repository.FileAchievementRepository;
 import ru.cft.javaLessons.miner.app.service.AchievementService;
 import ru.cft.javaLessons.miner.app.service.GameEngine;
-import ru.cft.javaLessons.miner.app.service.GameTimer;
 import ru.cft.javaLessons.miner.app.service.GridService;
+import ru.cft.javaLessons.miner.app.timer.GameTimer;
 import ru.cft.javaLessons.miner.view.MainWindow;
 
 import javax.swing.*;

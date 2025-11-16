@@ -1,13 +1,14 @@
 package ru.cft.javaLessons.miner.view;
 
 import ru.cft.javaLessons.miner.app.controller.GameController;
-import ru.cft.javaLessons.miner.app.listeners.*;
-import ru.cft.javaLessons.miner.app.listeners.events.CellInfo;
-import ru.cft.javaLessons.miner.app.listeners.events.GameStartInfo;
 import ru.cft.javaLessons.miner.app.model.Difficulty;
 import ru.cft.javaLessons.miner.app.model.GameState;
+import ru.cft.javaLessons.miner.app.model.listeners.*;
+import ru.cft.javaLessons.miner.app.model.listeners.events.CellInfo;
+import ru.cft.javaLessons.miner.app.model.listeners.events.GameStartInfo;
 import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
 import ru.cft.javaLessons.miner.app.repository.FileAchievementRepository;
+import ru.cft.javaLessons.miner.app.timer.TimerListener;
 
 import javax.swing.*;
 import java.awt.*;

@@ -2,16 +2,16 @@ package ru.cft.javaLessons.miner.app.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import ru.cft.javaLessons.miner.app.listeners.FlagCountListener;
-import ru.cft.javaLessons.miner.app.listeners.GameStateListener;
-import ru.cft.javaLessons.miner.app.listeners.GridUpdateListener;
-import ru.cft.javaLessons.miner.app.listeners.NewGameListener;
-import ru.cft.javaLessons.miner.app.listeners.events.CellInfo;
-import ru.cft.javaLessons.miner.app.listeners.events.GameStartInfo;
 import ru.cft.javaLessons.miner.app.model.Cell;
 import ru.cft.javaLessons.miner.app.model.Difficulty;
 import ru.cft.javaLessons.miner.app.model.GameState;
 import ru.cft.javaLessons.miner.app.model.Grid;
+import ru.cft.javaLessons.miner.app.model.listeners.FlagCountListener;
+import ru.cft.javaLessons.miner.app.model.listeners.GameStateListener;
+import ru.cft.javaLessons.miner.app.model.listeners.GridUpdateListener;
+import ru.cft.javaLessons.miner.app.model.listeners.NewGameListener;
+import ru.cft.javaLessons.miner.app.model.listeners.events.CellInfo;
+import ru.cft.javaLessons.miner.app.model.listeners.events.GameStartInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;

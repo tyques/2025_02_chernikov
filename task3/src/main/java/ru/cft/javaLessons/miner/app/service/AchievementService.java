@@ -1,11 +1,12 @@
 package ru.cft.javaLessons.miner.app.service;
 
-import ru.cft.javaLessons.miner.app.listeners.GameStateListener;
-import ru.cft.javaLessons.miner.app.listeners.NewRecordListener;
-import ru.cft.javaLessons.miner.app.listeners.WinListener;
 import ru.cft.javaLessons.miner.app.model.Difficulty;
 import ru.cft.javaLessons.miner.app.model.GameState;
+import ru.cft.javaLessons.miner.app.model.listeners.GameStateListener;
+import ru.cft.javaLessons.miner.app.model.listeners.NewRecordListener;
+import ru.cft.javaLessons.miner.app.model.listeners.WinListener;
 import ru.cft.javaLessons.miner.app.repository.AchievementRepository;
+import ru.cft.javaLessons.miner.app.timer.GameTimer;
 import ru.cft.javaLessons.miner.view.Achievement;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
-package ru.cft.javaLessons.miner.app.listeners;
+package ru.cft.javaLessons.miner.app.model.listeners;
 
-import ru.cft.javaLessons.miner.app.listeners.events.CellInfo;
+import ru.cft.javaLessons.miner.app.model.listeners.events.CellInfo;
 
 import java.util.Collection;
 

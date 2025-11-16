@@ -1,9 +1,8 @@
-package ru.cft.javaLessons.miner.app.service;
+package ru.cft.javaLessons.miner.app.timer;
 
 import lombok.Getter;
-import ru.cft.javaLessons.miner.app.listeners.GameStateListener;
-import ru.cft.javaLessons.miner.app.listeners.TimerListener;
 import ru.cft.javaLessons.miner.app.model.GameState;
+import ru.cft.javaLessons.miner.app.model.listeners.GameStateListener;
 
 import javax.swing.*;
 import java.util.ArrayList;

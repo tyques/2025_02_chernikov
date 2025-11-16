@@ -1,4 +1,4 @@
-package ru.cft.javaLessons.miner.app.listeners;
+package ru.cft.javaLessons.miner.app.model.listeners;
 
 @FunctionalInterface
 public interface FlagCountListener {

@@ -1,4 +1,4 @@
-package ru.cft.javaLessons.miner.app.listeners.events;
+package ru.cft.javaLessons.miner.app.model.listeners.events;
 
 import ru.cft.javaLessons.miner.app.model.Cell;
 
