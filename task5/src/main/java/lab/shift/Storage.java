@@ -12,7 +12,6 @@ public class Storage {
     public static final String THREAD_RESUMED = "Поток {} возобновил работу";
     public static final String RESOURCE_PRODUCED = "Поток {} произвел ресурс. Id ресурса: {}. \n Количество ресурсов на складе: {}";
     public static final String RESOURCE_CONSUMED = "Поток {} потребил ресурс. Id ресурса: {}. \n Количество ресурсов на складе: {}";
-
     public static final Logger LOGGER = LoggerFactory.getLogger(Storage.class);
     private final int capacity;
     private final Queue<Resource> queue;
