@@ -38,7 +38,7 @@ public class ClientModel {
         this.serverPort = port;
         this.username = username;
 
-        new Thread(this::networkLoop).start();
+        Thread.ofVirtual().start(this::networkLoop);
     }
 
     public void disconnect() {

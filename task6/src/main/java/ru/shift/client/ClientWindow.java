@@ -132,7 +132,6 @@ public class ClientWindow extends JFrame implements ClientUI {
     @Override
     public void onLoginError(String error) {
         JOptionPane.showMessageDialog(this, "Ошибка входа: " + error, "Ошибка", JOptionPane.ERROR_MESSAGE);
-        // В идеале тут нужно вернуть пользователя на экран логина
         System.exit(0);
     }
 

@@ -49,15 +49,12 @@ public class ClientHandler implements Runnable {
 
                 if (message.getType() == MessageType.CHAT_MESSAGE) {
                     message.setSender(username);
-                    // Сервер может доверять времени клиента или ставить свое
-                    // message.setTimestamp(LocalDateTime.now());
                     server.broadcast(message);
                 } else if (message.getType() == MessageType.HISTORY_REQUEST) {
                     sendHistory(message.getIndex());
                 }
             }
         } catch (IOException e) {
-            // Клиент отключился
         } finally {
             server.unsubscribe(username);
             try {

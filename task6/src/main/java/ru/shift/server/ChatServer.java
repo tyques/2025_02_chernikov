@@ -32,7 +32,6 @@ public class ChatServer {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
                 Socket socket = serverSocket.accept();
-                // Java 21: Virtual Thread для каждого клиента
                 Thread.ofVirtual().start(new ClientHandler(this, socket));
             }
         } catch (IOException e) {
@@ -40,25 +39,28 @@ public class ChatServer {
         }
     }
 
-    public synchronized boolean subscribe(String username, ClientHandler handler) {
-        if (clients.containsKey(username)) return false;
-        clients.put(username, handler);
-        broadcastSystemMessage("Клиент " + username + " присоединился к чату");
-        broadcastUserList();
-        return true;
+    public boolean subscribe(String username, ClientHandler handler) {
+        if (clients.putIfAbsent(username, handler) == null) {
+            broadcastSystemMessage("Клиент " + username + " присоединился к чату");
+            broadcastUserList();
+            return true;
+        }
+        return false;
     }
 
-    public synchronized void unsubscribe(String username) {
-        if (username != null && clients.containsKey(username)) {
-            clients.remove(username);
+    public void unsubscribe(String username) {
+        if (username == null) return;
+        if (clients.remove(username) != null) {
             broadcastSystemMessage("Клиент " + username + " отключился");
             broadcastUserList();
         }
     }
 
     public void broadcast(Message message) {
-        // Сохраняем в историю только текстовые сообщения
         if (message.getType() == MessageType.CHAT_MESSAGE) {
+            if (messageHistory.size() >= 1000) {
+                messageHistory.removeFirst();
+            }
             messageHistory.add(message);
         }
 
