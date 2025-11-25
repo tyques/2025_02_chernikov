@@ -2,6 +2,7 @@ package ru.shift.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.common.Message;
 import ru.shift.common.MessageType;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 public class ChatServer {
     private final int port;
     private final Map<String, ClientHandler> clients = new ConcurrentHashMap<>();
@@ -28,39 +30,42 @@ public class ChatServer {
     }
 
     public void start() {
-        System.out.println("Сервер запущен на порту: " + port);
+        log.info("Запуск сервера на порту: {}", port);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
                 Socket socket = serverSocket.accept();
+                log.info("Новое соединение: {}", socket.getRemoteSocketAddress());
                 Thread.ofVirtual().start(new ClientHandler(this, socket));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Критическая ошибка сервера", e);
         }
     }
 
     public boolean subscribe(String username, ClientHandler handler) {
         if (clients.putIfAbsent(username, handler) == null) {
+            log.info("Пользователь {} авторизовался", username);
             broadcastSystemMessage("Клиент " + username + " присоединился к чату");
             broadcastUserList();
             return true;
         }
+        log.warn("Попытка входа под занятым именем: {}", username);
         return false;
     }
 
     public void unsubscribe(String username) {
         if (username == null) return;
         if (clients.remove(username) != null) {
+            log.info("Пользователь {} отключился", username);
             broadcastSystemMessage("Клиент " + username + " отключился");
             broadcastUserList();
         }
     }
 
     public void broadcast(Message message) {
+        log.debug("Рассылка сообщения от {}: {}", message.getSender(), message.getType());
+
         if (message.getType() == MessageType.CHAT_MESSAGE) {
-            if (messageHistory.size() >= 1000) {
-                messageHistory.removeFirst();
-            }
             messageHistory.add(message);
         }
 
@@ -84,6 +89,7 @@ public class ChatServer {
         try {
             usersJson = objectMapper.writeValueAsString(clients.keySet());
         } catch (Exception e) {
+            log.error("Ошибка сериализации списка пользователей", e);
             return;
         }
 

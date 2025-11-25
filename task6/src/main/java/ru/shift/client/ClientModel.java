@@ -3,6 +3,7 @@ package ru.shift.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.common.Message;
 import ru.shift.common.MessageType;
 
@@ -14,6 +15,7 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 public class ClientModel {
     private final ObjectMapper objectMapper;
     private final ClientUI ui;
@@ -37,11 +39,12 @@ public class ClientModel {
         this.serverAddress = address;
         this.serverPort = port;
         this.username = username;
-
+        log.info("Инициализация подключения: {}@{}:{}", username, address, port);
         Thread.ofVirtual().start(this::networkLoop);
     }
 
     public void disconnect() {
+        log.info("Завершение работы клиента");
         isRunning = false;
         closeConnection();
         System.exit(0);
@@ -51,9 +54,11 @@ public class ClientModel {
         while (isRunning) {
             try {
                 if (socket == null || socket.isClosed()) {
+                    log.info("Подключение к серверу...");
                     socket = new Socket(serverAddress, serverPort);
                     in = new DataInputStream(socket.getInputStream());
                     out = new DataOutputStream(socket.getOutputStream());
+                    log.info("Socket подключен");
 
                     send(Message.builder()
                             .type(MessageType.LOGIN_REQUEST)
@@ -63,16 +68,20 @@ public class ClientModel {
                 }
 
                 String json = in.readUTF();
+                log.debug("Входящее сообщение: {}", json);
                 Message message = objectMapper.readValue(json, Message.class);
                 handleMessage(message);
 
             } catch (IOException e) {
+                if (isAuthenticated) {
+                    log.warn("Соединение потеряно: {}", e.getMessage());
+                }
                 isAuthenticated = false;
                 ui.onConnectionLost();
                 closeConnection();
                 try {
                     Thread.sleep(3000);
-                    System.out.println("Попытка переподключения...");
+                    log.info("Попытка переподключения...");
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -85,11 +94,13 @@ public class ClientModel {
             try {
                 switch (message.getType()) {
                     case LOGIN_SUCCESS -> {
+                        log.info("Успешный вход в чат");
                         isAuthenticated = true;
                         ui.onLoginSuccess();
                         requestHistory(0);
                     }
                     case LOGIN_ERROR -> {
+                        log.error("Ошибка входа: {}", message.getContent());
                         ui.onLoginError(message.getContent());
                     }
                     case CHAT_MESSAGE, SYSTEM_MESSAGE -> ui.addMessage(message);
@@ -101,11 +112,12 @@ public class ClientModel {
                     case HISTORY_RESPONSE -> {
                         List<Message> history = objectMapper.readValue(message.getContent(), new TypeReference<>() {
                         });
+                        log.debug("Загружена история: {} сообщений", history.size());
                         for (Message m : history) ui.addMessage(m);
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Ошибка обработки сообщения", e);
             }
         });
     }
@@ -132,6 +144,7 @@ public class ClientModel {
                 out.writeUTF(objectMapper.writeValueAsString(msg));
             }
         } catch (IOException e) {
+            log.error("Ошибка отправки сообщения", e);
         }
     }
 
@@ -141,7 +154,7 @@ public class ClientModel {
             if (out != null) out.close();
             if (socket != null) socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Ошибка при закрытии ресурсов: {}", e.getMessage());
         }
     }
 }

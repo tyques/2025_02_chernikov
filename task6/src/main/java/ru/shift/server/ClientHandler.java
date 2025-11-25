@@ -1,14 +1,17 @@
 package ru.shift.server;
 
+import lombok.extern.slf4j.Slf4j;
 import ru.shift.common.Message;
 import ru.shift.common.MessageType;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 
+@Slf4j
 public class ClientHandler implements Runnable {
     private final ChatServer server;
     private final Socket socket;
@@ -29,10 +32,13 @@ public class ClientHandler implements Runnable {
 
             while (true) {
                 String json = in.readUTF();
+                log.debug("Получен JSON (auth): {}", json);
                 Message message = server.getMapper().readValue(json, Message.class);
 
                 if (message.getType() == MessageType.LOGIN_REQUEST) {
                     String nick = message.getContent();
+                    log.info("Запрос на вход: {}", nick);
+
                     if (server.subscribe(nick, this)) {
                         this.username = nick;
                         sendMessage(Message.builder().type(MessageType.LOGIN_SUCCESS).build());
@@ -45,22 +51,27 @@ public class ClientHandler implements Runnable {
 
             while (true) {
                 String json = in.readUTF();
+                log.trace("Получен JSON от {}: {}", username, json);
                 Message message = server.getMapper().readValue(json, Message.class);
 
                 if (message.getType() == MessageType.CHAT_MESSAGE) {
                     message.setSender(username);
                     server.broadcast(message);
                 } else if (message.getType() == MessageType.HISTORY_REQUEST) {
+                    log.debug("Запрос истории от {} начиная с индекса {}", username, message.getIndex());
                     sendHistory(message.getIndex());
                 }
             }
+        } catch (EOFException e) {
+            log.info("Соединение с клиентом {} разорвано (EOF)", username != null ? username : "unknown");
         } catch (IOException e) {
+            log.error("Ошибка связи с клиентом {}", username, e);
         } finally {
             server.unsubscribe(username);
             try {
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Ошибка при закрытии сокета", e);
             }
         }
     }
@@ -70,7 +81,7 @@ public class ClientHandler implements Runnable {
             String json = server.getMapper().writeValueAsString(message);
             out.writeUTF(json);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Не удалось отправить сообщение пользователю {}", username, e);
         }
     }
 
@@ -84,7 +95,7 @@ public class ClientHandler implements Runnable {
                     .content(historyJson)
                     .build());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Ошибка отправки истории", e);
         }
     }
 }
