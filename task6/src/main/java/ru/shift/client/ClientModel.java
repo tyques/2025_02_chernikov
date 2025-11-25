@@ -29,6 +29,8 @@ public class ClientModel {
     private boolean isRunning = true;
     private boolean isAuthenticated = false;
 
+    private int lastMessageIndex = 0;
+
     public ClientModel(ClientUI ui) {
         this.ui = ui;
         this.objectMapper = new ObjectMapper();
@@ -97,13 +99,17 @@ public class ClientModel {
                         log.info("Успешный вход в чат");
                         isAuthenticated = true;
                         ui.onLoginSuccess();
-                        requestHistory(0);
+                        requestHistory(lastMessageIndex);
                     }
                     case LOGIN_ERROR -> {
                         log.error("Ошибка входа: {}", message.getContent());
                         ui.onLoginError(message.getContent());
                     }
-                    case CHAT_MESSAGE, SYSTEM_MESSAGE -> ui.addMessage(message);
+                    case CHAT_MESSAGE -> {
+                        ui.addMessage(message);
+                        lastMessageIndex++;
+                    }
+                    case SYSTEM_MESSAGE -> ui.addMessage(message);
                     case USER_LIST_UPDATE -> {
                         List<String> users = objectMapper.readValue(message.getContent(), new TypeReference<>() {
                         });
@@ -113,7 +119,10 @@ public class ClientModel {
                         List<Message> history = objectMapper.readValue(message.getContent(), new TypeReference<>() {
                         });
                         log.debug("Загружена история: {} сообщений", history.size());
-                        for (Message m : history) ui.addMessage(m);
+                        for (Message m : history) {
+                            ui.addMessage(m);
+                        }
+                        lastMessageIndex += history.size();
                     }
                 }
             } catch (Exception e) {
@@ -132,6 +141,7 @@ public class ClientModel {
     }
 
     public void requestHistory(int fromIndex) {
+        log.info("Запрос истории с индекса: {}", fromIndex);
         send(Message.builder()
                 .type(MessageType.HISTORY_REQUEST)
                 .index(fromIndex)

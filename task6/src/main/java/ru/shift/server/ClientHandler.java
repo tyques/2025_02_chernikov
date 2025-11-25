@@ -76,7 +76,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendMessage(Message message) {
+    public synchronized void sendMessage(Message message) {
         try {
             String json = server.getMapper().writeValueAsString(message);
             out.writeUTF(json);

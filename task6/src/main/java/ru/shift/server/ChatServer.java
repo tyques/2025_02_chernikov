@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -103,9 +102,20 @@ public class ChatServer {
         }
     }
 
+    /**
+     * Возвращает часть истории, начиная с указанного индекса.
+     *
+     * @param index индекс первого необходимого сообщения (0 - с начала)
+     * @return список сообщений или пустой список, если новых сообщений нет
+     */
     public List<Message> getHistoryFromIndex(int index) {
-        if (index < 0 || index >= messageHistory.size()) return Collections.emptyList();
-        return new ArrayList<>(messageHistory.subList(index, messageHistory.size()));
+        if (index < 0 || index >= messageHistory.size()) {
+            return Collections.emptyList();
+        }
+
+        return messageHistory.stream()
+                .skip(index)
+                .toList();
     }
 
     public ObjectMapper getMapper() {
