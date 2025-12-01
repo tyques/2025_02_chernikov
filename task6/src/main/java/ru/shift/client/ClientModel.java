@@ -91,48 +91,55 @@ public class ClientModel {
         }
     }
 
-    private void handleMessage(Message message) throws IOException {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                switch (message.getType()) {
-                    case LOGIN_SUCCESS -> {
-                        log.info("Успешный вход в чат");
-                        isAuthenticated = true;
-                        ui.onLoginSuccess();
-                        requestHistory(lastMessageIndex);
-                    }
-                    case LOGIN_ERROR -> {
-                        log.error("Ошибка входа: {}", message.getContent());
-                        ui.onLoginError(message.getContent());
-                    }
-                    case CHAT_MESSAGE -> {
-                        ui.addMessage(message);
-                        lastMessageIndex++;
-                    }
-                    case SYSTEM_MESSAGE -> ui.addMessage(message);
-                    case USER_LIST_UPDATE -> {
-                        List<String> users = objectMapper.readValue(message.getContent(), new TypeReference<>() {
-                        });
-                        ui.updateUserList(users);
-                    }
-                    case HISTORY_RESPONSE -> {
-                        List<Message> history = objectMapper.readValue(message.getContent(), new TypeReference<>() {
-                        });
-                        log.debug("Загружена история: {} сообщений", history.size());
+    private void handleMessage(Message message) {
+        try {
+            switch (message.getType()) {
+                case LOGIN_SUCCESS -> {
+                    log.info("Успешный вход в чат");
+                    isAuthenticated = true;
+                    requestHistory(lastMessageIndex);
+
+                    SwingUtilities.invokeLater(ui::onLoginSuccess);
+                }
+                case LOGIN_ERROR -> {
+                    log.error("Ошибка входа: {}", message.getContent());
+                    SwingUtilities.invokeLater(() -> ui.onLoginError(message.getContent()));
+                }
+                case CHAT_MESSAGE -> {
+                    lastMessageIndex++;
+                    SwingUtilities.invokeLater(() -> ui.addMessage(message));
+                }
+                case SYSTEM_MESSAGE -> {
+                    SwingUtilities.invokeLater(() -> ui.addMessage(message));
+                }
+                case USER_LIST_UPDATE -> {
+                    List<String> users = objectMapper.readValue(message.getContent(), new TypeReference<>() {
+                    });
+
+                    SwingUtilities.invokeLater(() -> ui.updateUserList(users));
+                }
+                case HISTORY_RESPONSE -> {
+                    List<Message> history = objectMapper.readValue(message.getContent(), new TypeReference<>() {
+                    });
+                    log.debug("Загружена история: {} сообщений", history.size());
+                    lastMessageIndex += history.size();
+
+                    SwingUtilities.invokeLater(() -> {
                         for (Message m : history) {
                             ui.addMessage(m);
                         }
-                        lastMessageIndex += history.size();
-                    }
+                    });
                 }
-            } catch (Exception e) {
-                log.error("Ошибка обработки сообщения", e);
             }
-        });
+        } catch (Exception e) {
+            log.error("Ошибка обработки сообщения", e);
+        }
     }
 
     public void sendTextMessage(String text) {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated) {
+            return;
+        }
         send(Message.builder()
                 .type(MessageType.CHAT_MESSAGE)
                 .content(text)

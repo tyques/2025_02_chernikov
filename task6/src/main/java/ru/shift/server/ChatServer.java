@@ -53,7 +53,9 @@ public class ChatServer {
     }
 
     public void unsubscribe(String username) {
-        if (username == null) return;
+        if (username == null) {
+            return;
+        }
         if (clients.remove(username) != null) {
             log.info("Пользователь {} отключился", username);
             broadcastSystemMessage("Клиент " + username + " отключился");
