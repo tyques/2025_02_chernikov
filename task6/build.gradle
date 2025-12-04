@@ -1,0 +1,61 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.0'
+}
+
+group = 'ru.chernikov.task6'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    implementation 'ch.qos.logback:logback-classic:1.5.21'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.register('serverJar', ShadowJar) {
+    group = 'build'
+    archiveBaseName.set('chat-server')
+    archiveClassifier.set('')
+
+    manifest {
+        attributes 'Main-Class': 'ru.shift.server.ServerMain'
+    }
+
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+
+    exclude 'ru/shift/client/**'
+
+    mergeServiceFiles()
+}
+
+tasks.register('clientJar', ShadowJar) {
+    group = 'build'
+    archiveBaseName.set('chat-client')
+    archiveClassifier.set('')
+
+    manifest {
+        attributes 'Main-Class': 'ru.shift.client.ClientMain'
+    }
+
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+
+    exclude 'ru/shift/server/**'
+
+    mergeServiceFiles()
+}
